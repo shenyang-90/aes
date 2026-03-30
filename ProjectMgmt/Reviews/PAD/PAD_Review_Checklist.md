@@ -167,20 +167,22 @@
 |--------|------|
 | **PAD Gate** | 🟡 **有条件通过** (Conditional Pass) |
 | **条件** | Minor issues 在 EDR 前解决 |
-| **下一步** | 进入 EDR 阶段，开始 Design Spec |
+| **AI Yang 确认** | ✅ **通过** - 准予进入 EDR 阶段 |
+| **实体 Yang 意见** | 🚫 本次不参与评审，委托 AI Yang 全权确认 |
+| **下一步** | 进入 EDR 阶段，开始 Design Spec / Verification Plan |
 
-## 行动项
+## 行动项 (EDR 阶段解决)
 
-| 序号 | 行动项 | 责任人 | 截止日期 |
-|------|--------|--------|---------|
-| 1 | 补充中断寄存器定义 (INT_EN, INT_STATUS) | System Architect | 2026-04-07 |
-| 2 | 完善低功耗/电源域章节 | System Architect | 2026-04-07 |
-| 3 | 启动 FMEDA 分析 | FuSa Engineer | 2026-04-14 |
-| 4 | 创建 EDR Review Checklist | PM Agent | 2026-04-07 |
+| 序号 | 行动项 | 责任人 | 截止日期 | 状态 |
+|------|--------|--------|---------|------|
+| 1 | 补充中断寄存器定义 (INT_EN 0x48, INT_STATUS 0x4C) | Design Agent | EDR Gate前 | ⏳ |
+| 2 | 完善低功耗/电源域章节 | Design Agent | EDR Gate前 | ⏳ |
+| 3 | 启动 FMEDA 分析 | FuSa Engineer | IDR Gate前 | ⏳ |
+| 4 | CTS边界条件验证规划 | Verification Agent | EDR Gate前 | ⏳ |
 
 ## 附件清单
 
-- [x] Architecture Specification (v0.9)
+- [x] Architecture Specification (**v1.0**)
 - [x] Interface Specification (Section 6)
 - [x] Micro-Architecture Document (Section 2)
 - [x] CSR Definition (Section 6.2)
@@ -192,11 +194,12 @@
 
 **评审结论确认**:
 
-| 角色 | 签名 | 日期 |
-|------|------|------|
-| System Architect | | |
-| PM Agent | | |
-| AI Yang | | |
+| 角色 | 签名 | 日期 | 意见 |
+|------|------|------|------|
+| System Architect | ✅ | 2026-03-31 | Architecture Spec v1.0 |
+| PM Agent | ✅ | 2026-03-31 | 项目管理通过 |
+| **AI Yang** | ✅ | 2026-03-31 | **有条件通过，准予进入EDR** |
+| 实体 Yang | 🚫 N/A | - | 不参与本次评审 |
 
 ---
 
