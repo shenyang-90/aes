@@ -4,11 +4,12 @@
 
 | 字段 | 值 |
 |------|-----|
-| **版本** | v0.1 |
+| **版本** | v0.9 |
 | **日期** | 2026-03-31 |
 | **作者** | System Architect |
-| **状态** | Draft |
-| **评审** | Pending |
+| **状态** | Ready for PAD Review |
+| **评审** | PAD Gate Scheduled |
+| **ASIL** | ASIL-D |
 
 ## 目录
 
