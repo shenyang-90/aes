@@ -1,0 +1,34 @@
+# Simulation outputs
+*.vcd
+*.fst
+*.fsdb
+*.vpd
+
+# Compilation outputs
+out/
+obj_dir/
+*.o
+*.out
+simv
+simv.daidir/
+csrc/
+
+# Logs
+*.log
+transcript
+nwaveLog/
+
+# Coverage
+*.ucdb
+coverage/
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
