@@ -244,7 +244,7 @@ module tb_simple;
     // Waveform Dump
     //========================================================================
     initial begin
-        $dumpfile("aes_simple.vcd");
+        $dumpfile("../../Temp/VCS/aes_simple.vcd");
         $dumpvars(0, tb_simple);
     end
 

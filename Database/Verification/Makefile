@@ -17,8 +17,8 @@ TEST ?= tc_smoke
 # Test path
 TEST_PATH = $(TC_DIR)/directed/$(TEST).sv
 
-# Output
-OUT_DIR = ./out
+# Output (to Temp directory)
+OUT_DIR = ../../Temp/VCS
 VCD_FILE = $(OUT_DIR)/$(TEST).vcd
 
 #==============================================================================
@@ -67,8 +67,7 @@ endif
 all: sim
 
 clean:
-	rm -rf $(OUT_DIR)
-	rm -f *.vcd
+	rm -rf ../../Temp/VCS/*
 	rm -f transcript
 
 regression:

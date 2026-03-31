@@ -93,7 +93,7 @@ module tb_top;
     // Waveform Dump
     //========================================================================
     initial begin
-        $dumpfile("aes_tb.vcd");
+        $dumpfile("../../Temp/VCS/aes_tb.vcd");
         $dumpvars(0, tb_top);
     end
 

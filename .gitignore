@@ -1,17 +1,18 @@
-# Simulation outputs
+# Simulation outputs (all in Temp/)
+Temp/
 *.vcd
 *.fst
 *.fsdb
 *.vpd
 
 # Compilation outputs
-out/
 obj_dir/
 *.o
 *.out
 simv
 simv.daidir/
 csrc/
+Database/Verification/out/
 
 # Logs
 *.log

@@ -6,7 +6,7 @@
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 TB_DIR=$(dirname "$SCRIPT_DIR")
 REPORT_DIR="$TB_DIR/../reports"
-OUT_DIR="$TB_DIR/../out"
+OUT_DIR="$TB_DIR/../../Temp/VCS"
 
 # Colors
 RED='\033[0;31m'
