@@ -43,7 +43,6 @@ compile:
 	@mkdir -p $(OUT_DIR)
 	@echo "Compiling $(TEST)..."
 	$(IVERILOG) $(COMP_FLAGS) -o $(OUT_DIR)/$(TEST).out \
-		$(ENV_DIR)/tb/tb_base.sv \
 		$(TEST_PATH)
 
 sim: compile
