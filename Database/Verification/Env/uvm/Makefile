@@ -13,7 +13,7 @@ UVM_DIR = .
 TEST ?= aes_smoke_test
 
 # Output
-OUT_DIR = ../../Temp/VCS
+OUT_DIR = ../../../Temp/VCS
 VCD_FILE = $(OUT_DIR)/aes_tb.vcd
 
 #==============================================================================

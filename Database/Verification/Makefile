@@ -17,6 +17,9 @@ TEST ?= tc_smoke
 # Test path
 TEST_PATH = $(TC_DIR)/directed/$(TEST).sv
 
+# UVM path
+UVM_DIR = $(ENV_DIR)/uvm
+
 # Output (to Temp directory)
 OUT_DIR = ../../Temp/VCS
 VCD_FILE = $(OUT_DIR)/$(TEST).vcd
