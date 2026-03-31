@@ -62,7 +62,7 @@ module cts_handler (
                 end
                 
                 CHECK_SIZE: begin
-                    if (valid_bits_reg == 7'd0 || valid_bits_reg == 7'd128) begin
+                    if (valid_bits_reg == 7'd0 || valid_bits_reg == 8'd128) begin
                         // Full block
                         core_in <= buffer;
                         state <= FULL_BLOCK;
