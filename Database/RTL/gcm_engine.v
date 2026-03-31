@@ -3,6 +3,7 @@
 // Description: GCM mode GHASH engine for authentication
 // Implements GF(2^128) multiplication
 //============================================================================
+`timescale 1ns / 1ps
 
 module gcm_engine (
     input  wire        clk,

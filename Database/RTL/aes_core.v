@@ -3,6 +3,7 @@
 // Description: AES Encryption Core - FIPS-197 Compliant
 // Version: 3.2 - Simplified for Debug
 //============================================================================
+`timescale 1ns / 1ps
 
 module aes_core (
     input  wire        clk,

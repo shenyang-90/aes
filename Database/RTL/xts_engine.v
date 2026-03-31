@@ -4,6 +4,7 @@
 // Reference: IEEE P1619 - XTS-AES for storage encryption
 // Bug Fix: BUG-008 - Implemented alpha^block_num calculation
 //============================================================================
+`timescale 1ns / 1ps
 
 module xts_engine (
     input  wire        clk,

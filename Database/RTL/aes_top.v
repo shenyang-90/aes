@@ -4,6 +4,7 @@
 // Features: ECB/CBC/CTR/GCM/XTS/CTS modes, 128/192/256-bit keys
 // Security: TI masked S-Box, fault detection, lockstep
 //============================================================================
+`timescale 1ns / 1ps
 
 module aes_top (
     // Clock and Reset

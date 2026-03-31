@@ -4,6 +4,7 @@
 // Project: AES_Crypto_IP
 // Version: 1.0
 //============================================================================
+`timescale 1ns / 1ps
 
 module aes_controller (
     input  wire        clk,

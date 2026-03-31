@@ -3,6 +3,7 @@
 // Description: CTS (Ciphertext Stealing) handler for non-aligned data
 // Supports: 1-127 bit final block handling
 //============================================================================
+`timescale 1ns / 1ps
 
 module cts_handler (
     input  wire        clk,

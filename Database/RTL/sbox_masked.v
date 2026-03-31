@@ -5,6 +5,7 @@
 // Reference: Nikova et al. "Threshold Implementations Against Side-Channel Attacks"
 // Bug Fix: BUG-006 - Complete TI 3-share S-Box implementation
 //============================================================================
+`timescale 1ns / 1ps
 
 module sbox_masked (
     input  wire        clk,

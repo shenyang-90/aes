@@ -2,6 +2,7 @@
 // Module: mode_controller
 // Description: AES mode controller - ECB/CBC/CTR/GCM/XTS/CTS
 //============================================================================
+`timescale 1ns / 1ps
 
 module mode_controller (
     input  wire        clk,

@@ -2,6 +2,7 @@
 // Module: apb_if
 // Description: APB Slave Interface for AES IP configuration
 //============================================================================
+`timescale 1ns / 1ps
 
 module apb_if (
     input  wire        clk,

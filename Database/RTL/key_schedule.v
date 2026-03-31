@@ -4,6 +4,7 @@
 //              Supports AES-128 (10 rounds), AES-192 (12 rounds), AES-256 (14 rounds)
 // Version: 2.0 - Quality First Implementation
 //============================================================================
+`timescale 1ns / 1ps
 
 module key_schedule (
     input  wire        clk,
