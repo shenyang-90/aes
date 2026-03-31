@@ -2,6 +2,7 @@
 // Module: xts_engine
 // Description: XTS-AES mode engine with tweak calculation
 // Reference: IEEE P1619 - XTS-AES for storage encryption
+// Bug Fix: BUG-008 - Implemented alpha^block_num calculation
 //============================================================================
 
 module xts_engine (
@@ -48,6 +49,7 @@ module xts_engine (
     reg [3:0] state;
     reg [127:0] tweak;
     reg [127:0] data_xored;
+    reg [31:0]  alpha_cnt;  // Counter for alpha multiplication (BUG-008 fix)
     
     // GF(2^128) multiplication by alpha (x)
     // alpha = x in GF(2^128) representation
@@ -81,6 +83,7 @@ module xts_engine (
                         // Calculate tweak = E_k2(sector_id)
                         tweak_core_in <= sector_id;
                         tweak_core_start <= 1'b1;
+                        alpha_cnt <= 32'd0;  // BUG-008: Initialize counter
                         state <= CALC_TWEAK;
                     end
                 end
@@ -97,9 +100,15 @@ module xts_engine (
                 end
                 
                 MULT_ALPHA: begin
-                    // Multiply tweak by alpha^block_num
-                    // Simplified: assume block_num = 0 for now
-                    state <= XOR_TWEAK;
+                    // BUG-008 Fix: Multiply tweak by alpha^block_num
+                    // Loop alpha_cnt times to compute tweak * alpha^block_num
+                    if (alpha_cnt < block_num) begin
+                        tweak <= gf_mul_alpha(tweak);
+                        alpha_cnt <= alpha_cnt + 32'd1;
+                    end else begin
+                        alpha_cnt <= 32'd0;
+                        state <= XOR_TWEAK;
+                    end
                 end
                 
                 XOR_TWEAK: begin

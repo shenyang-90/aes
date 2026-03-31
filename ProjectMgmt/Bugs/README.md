@@ -8,10 +8,10 @@
 | BUG-003 | Major | ✅ CLOSED | AES-192/256 key length incomplete | Design Agent | 2026-03-31 |
 | BUG-004 | Major | 🟡 PARTIAL | GCM mode implementation incomplete | Design Agent | 2026-04-10 |
 | BUG-005 | Minor | 🟡 PARTIAL | XTS mode tweak implementation issue | Design Agent | 2026-04-08 |
-| BUG-006 | Major | 🔴 OPEN | sbox_masked placeholder implementation | Design Agent | 2026-04-10 |
+| BUG-006 | Major | 🟢 FIXED | sbox_masked placeholder implementation | Design Agent | 2026-03-31 |
 | BUG-007 | Low | 🔴 OPEN | State machine naming inconsistency | Design Agent | 2026-04-15 |
-| BUG-008 | Low | 🔴 OPEN | XTS tweak block_num simplification | Design Agent | 2026-04-12 |
-| BUG-009 | Low | 🔴 OPEN | GCM multi-block AAD/CT processing | Design Agent | 2026-04-15 |
+| BUG-008 | Low | 🟢 FIXED | XTS tweak block_num simplification | Design Agent | 2026-03-31 |
+| BUG-009 | Low | 🟢 FIXED | GCM multi-block AAD/CT processing | Design Agent | 2026-03-31 |
 | BUG-010 | Low | 🔴 OPEN | CRC checker not using data_in | Design Agent | 2026-04-10 |
 
 ## Bug Status Legend
