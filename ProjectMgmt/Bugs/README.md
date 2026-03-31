@@ -6,8 +6,8 @@
 |--------|----------|--------|-------|----------|----------|
 | BUG-002 | Critical | ✅ CLOSED | Unpacked structs not supported | Coding Yang | Done |
 | BUG-003 | Major | ✅ CLOSED | AES-192/256 key length incomplete | Design Agent | 2026-03-31 |
-| BUG-004 | Major | 🟡 PARTIAL | GCM mode implementation incomplete | Design Agent | 2026-04-10 |
-| BUG-005 | Minor | 🟡 PARTIAL | XTS mode tweak implementation issue | Design Agent | 2026-04-08 |
+| BUG-004 | Major | 🟢 FIXED | GCM mode implementation incomplete | Design Agent | 2026-03-31 |
+| BUG-005 | Minor | 🟢 FIXED | XTS mode tweak implementation issue | Design Agent | 2026-03-31 |
 | BUG-006 | **Major** | 🟢 FIXED | sbox_masked placeholder implementation | Design Agent | 2026-03-31 |
 | BUG-007 | Low | 🔴 OPEN | State machine naming inconsistency | Design Agent | 2026-04-15 |
 | BUG-008 | Low | 🟢 FIXED | XTS tweak block_num simplification | Design Agent | 2026-03-31 |

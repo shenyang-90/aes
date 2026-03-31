@@ -63,6 +63,7 @@ module mode_controller (
     reg         gcm_ct_valid;
     reg         gcm_ct_last;
     reg [127:0] gcm_ct_data;
+    reg [127:0] prev_key;           // Track key changes for H recalculation (BUG-004 fix)
     
     // GCM engine instance
     gcm_engine u_gcm_engine (
@@ -100,6 +101,7 @@ module mode_controller (
         end else begin
             core_start <= 1'b0;
             done <= 1'b0;
+            gcm_ct_valid <= 1'b0;  // Single cycle pulse
             
             case (state)
                 IDLE: begin
@@ -107,6 +109,11 @@ module mode_controller (
                         iv_reg <= iv;
                         ctr_counter <= iv;
                         feedback <= iv;
+                        // BUG-004 Fix: Check if key changed, reset H if so
+                        if (mode == MODE_GCM && key != prev_key) begin
+                            gcm_hash_subkey_h <= 128'd0;
+                            prev_key <= key;
+                        end
                         state <= PREPARE;
                     end
                 end
