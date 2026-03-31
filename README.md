@@ -94,6 +94,10 @@ PCD ──────→ PAD ──────→ EDR ──────→ ID
 | 日期 | 活动 | 负责人 |
 |------|------|--------|
 | 2026-03-31 | 项目初始化，模板生成 | PM Agent |
+| 2026-03-31 | PAD Gate通过，进入EDR | AI Yang |
+| 2026-03-31 | EDR Gate通过，进入IDR | 实体 Yang |
+| 2026-03-31 | RTL开发完成 (12模块) | Coding Yang |
+| 2026-03-31 | UVM环境搭建完成 | Coding Yang |
 
 ## 参考文档
 
@@ -101,6 +105,12 @@ PCD ──────→ PAD ──────→ EDR ──────→ ID
 - [XTS-AES Mode (IEEE P1619)](./Database/Reference/IEEE-P1619.pdf)
 - [DPA Countermeasures Survey](./Database/Reference/DPA_Countermeasures.pdf)
 - [SOC_DESIGN_WORKFLOW.md](../../../workflow/SOC_DESIGN_WORKFLOW.md)
+
+---
+
+*项目模板版本: v2.0*  
+*AES Crypto IP - Confidential*
+ow/SOC_DESIGN_WORKFLOW.md)
 
 ---
 
