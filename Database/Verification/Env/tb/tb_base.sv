@@ -121,11 +121,17 @@ module tb_base;
             ctrl_val = {25'd0, mode, 2'b00, encrypt, 1'b0};
             apb_write(REG_MODE, ctrl_val);
             
-            // Write key (128-bit)
+            // Write key based on key length
             apb_write(REG_KEY_0, key[255:224]);
             apb_write(REG_KEY_1, key[223:192]);
             apb_write(REG_KEY_2, key[191:160]);
             apb_write(REG_KEY_3, key[159:128]);
+            // For AES-192 and AES-256
+            apb_write(REG_KEY_4, key[127:96]);
+            apb_write(REG_KEY_5, key[95:64]);
+            // For AES-256 only
+            apb_write(REG_KEY_6, key[63:32]);
+            apb_write(REG_KEY_7, key[31:0]);
             
             // Write IV for non-ECB modes
             if (mode != 3'd0) begin

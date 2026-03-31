@@ -16,8 +16,16 @@ module mode_controller (
     // Data
     input  wire [127:0] data_in,
     output reg  [127:0] data_out,
-    input  wire [127:0] iv,             // IV for CBC/CTR
+    input  wire [127:0] iv,             // IV for CBC/CTR/GCM
     input  wire [127:0] key,            // Key for XTS tweak
+    
+    // GCM Additional Data
+    input  wire [127:0] aad_data,
+    input  wire         aad_valid,
+    input  wire [63:0]  aad_len,
+    input  wire [63:0]  ct_len,
+    output wire [127:0] gcm_tag,
+    output wire         gcm_tag_valid,
     
     // AES Core interface
     output reg  [127:0] core_in,
@@ -49,6 +57,33 @@ module mode_controller (
     // CTR counter
     reg [127:0] ctr_counter;
     
+    // GCM signals
+    reg [127:0] gcm_hash_subkey_h;  // H = E(K, 0^128)
+    reg         gcm_calc_h;         // Flag to calculate H
+    reg         gcm_ct_valid;
+    reg         gcm_ct_last;
+    reg [127:0] gcm_ct_data;
+    
+    // GCM engine instance
+    gcm_engine u_gcm_engine (
+        .clk            (clk),
+        .rst_n          (rst_n),
+        .gcm_en         (mode == MODE_GCM),
+        .gcm_start      (gcm_calc_h),
+        .gcm_done       (done),
+        .hash_subkey_h  (gcm_hash_subkey_h),
+        .aad_data       (aad_data),
+        .aad_valid      (aad_valid),
+        .aad_last       (1'b0),  // Simplified: single AAD block
+        .ct_data        (gcm_ct_data),
+        .ct_valid       (gcm_ct_valid),
+        .ct_last        (gcm_ct_last),
+        .aad_len        (aad_len),
+        .ct_len         (ct_len),
+        .tag            (gcm_tag),
+        .tag_valid      (gcm_tag_valid)
+    );
+    
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             state <= IDLE;
@@ -57,6 +92,11 @@ module mode_controller (
             iv_reg <= 128'd0;
             feedback <= 128'd0;
             ctr_counter <= 128'd0;
+            gcm_calc_h <= 1'b0;
+            gcm_hash_subkey_h <= 128'd0;
+            gcm_ct_valid <= 1'b0;
+            gcm_ct_last <= 1'b0;
+            gcm_ct_data <= 128'd0;
         end else begin
             core_start <= 1'b0;
             done <= 1'b0;
@@ -89,6 +129,19 @@ module mode_controller (
                         MODE_CTR: begin
                             core_in <= ctr_counter;
                             state <= PROCESS;
+                        end
+                        
+                        MODE_GCM: begin
+                            // For GCM: First calculate H = E(K, 0^128)
+                            if (!gcm_calc_h) begin
+                                core_in <= 128'd0;  // Encrypt 0 to get H
+                                gcm_calc_h <= 1'b1;
+                                state <= PROCESS;
+                            end else begin
+                                // Then do CTR encryption for data
+                                core_in <= ctr_counter;
+                                state <= PROCESS;
+                            end
                         end
                         
                         default: begin
@@ -124,6 +177,24 @@ module mode_controller (
                         MODE_CTR: begin
                             data_out <= core_out ^ data_in;
                             ctr_counter <= ctr_counter + 1'b1;
+                        end
+                        
+                        MODE_GCM: begin
+                            if (gcm_calc_h && gcm_hash_subkey_h == 128'd0) begin
+                                // First round: save H
+                                gcm_hash_subkey_h <= core_out;
+                                // Restart for data encryption
+                                gcm_calc_h <= 1'b0;
+                                state <= PREPARE;
+                            end else begin
+                                // CTR encryption result
+                                data_out <= core_out ^ data_in;
+                                // Feed ciphertext to GCM engine
+                                gcm_ct_data <= core_out ^ data_in;
+                                gcm_ct_valid <= 1'b1;
+                                gcm_ct_last <= 1'b1;  // Simplified: single block
+                                ctr_counter <= ctr_counter + 1'b1;
+                            end
                         end
                         
                         default: begin
