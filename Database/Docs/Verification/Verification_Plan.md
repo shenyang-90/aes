@@ -233,6 +233,11 @@ def generate_cts_vectors():
 
 ## 3. TVLA侧信道测试
 
+> **⚠️ EDR Review决策 (2026-03-31)**: 
+> TVLA实际板测试在IP阶段**豁免不测**，本章节保留为理论方案文档，供后续SoC集成阶段参考。
+> 
+> **验证重点**: 功能验证为主，确保设计实现符合TI理论方案。
+
 ### 3.1 测试目标
 
 验证AES IP的侧信道防护机制（Boolean Masking + Shuffling）是否达到1阶DPA抵抗目标。
