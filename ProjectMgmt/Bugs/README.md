@@ -1,23 +1,5 @@
 # AES IP Bug Tracking
 
-## ⚠️ 重要说明
-
-**所有 Bug 相关信息必须直接记录在对应的 BUG-XXX.md 文件中。**
-
-> ❌ **禁止**在 Bugs 文件夹下新建其他状态文件、报告文件或汇总文件
-> - ~~BUG-FIX-STATUS.md~~ ❌
-> - ~~BUG-FIX-REPORT.md~~ ❌
-> - ~~BUG-PROGRESS.md~~ ❌
-> - 任何其他汇总/状态文件 ❌
-
-> ✅ **正确做法**：所有内容直接写入对应的 BUG-XXX.md
-> - 修复状态 → 写入 BUG-003.md 的 Status 字段
-> - 修复历史 → 写入 BUG-003.md 的 Fixes Applied 章节
-> - 验证结果 → 写入 BUG-003.md 的 Verification Results 章节
-> - 时间线 → 写入 BUG-003.md 的 Timeline 章节
-
----
-
 ## Active Bugs
 
 | Bug ID | Severity | Status | Title | Assignee | Due Date |
@@ -64,3 +46,21 @@ Found → Logged → Triage → Assigned → Fixed → Verified → Closed
 - [BUG-003.md](./BUG-003.md) - AES-192/256 密钥长度支持
 - [BUG-004.md](./BUG-004.md) - GCM 模式实现
 - [BUG-005.md](./BUG-005.md) - XTS 模式 tweak 实现
+
+---
+
+## ⚠️ 重要说明
+
+**所有 Bug 相关信息必须直接记录在对应的 BUG-XXX.md 文件中。**
+
+> ❌ **禁止**在 Bugs 文件夹下新建其他状态文件、报告文件或汇总文件
+> - ~~BUG-FIX-STATUS.md~~ ❌
+> - ~~BUG-FIX-REPORT.md~~ ❌
+> - ~~BUG-PROGRESS.md~~ ❌
+> - 任何其他汇总/状态文件 ❌
+
+> ✅ **正确做法**：所有内容直接写入对应的 BUG-XXX.md
+> - 修复状态 → 写入 BUG-003.md 的 Status 字段
+> - 修复历史 → 写入 BUG-003.md 的 Fixes Applied 章节
+> - 验证结果 → 写入 BUG-003.md 的 Verification Results 章节
+> - 时间线 → 写入 BUG-003.md 的 Timeline 章节
