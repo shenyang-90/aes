@@ -21,6 +21,18 @@ module aes_core (
 );
 
     localparam [1:0] AES_128 = 2'b00;
+    localparam [1:0] AES_192 = 2'b01;
+    localparam [1:0] AES_256 = 2'b10;
+    
+    // Number of rounds based on key length
+    reg [3:0] max_round;
+    always @(*) begin
+        case (key_len)
+            AES_192: max_round = 4'd11;  // 12 rounds (0-11)
+            AES_256: max_round = 4'd13;  // 14 rounds (0-13)
+            default: max_round = 4'd9;   // 10 rounds (0-9) for AES-128
+        endcase
+    end
     
     // xtime function: multiply by x in GF(2^8)
     function [7:0] xtime;
@@ -161,7 +173,7 @@ module aes_core (
                             {s2, s6, s10, s14} <= {s10, s14, s2, s6};
                             // Row 3: shift left by 3
                             {s3, s7, s11, s15} <= {s15, s3, s7, s11};
-                            if (round_cnt == 9) // Last round - skip MixColumns
+                            if (round_cnt == max_round) // Last round - skip MixColumns
                                 phase <= 3; // Go to AddRoundKey
                             else
                                 phase <= 2;
@@ -227,9 +239,17 @@ module aes_core (
                             s13 <= s13 ^ round_key[23:16];
                             s14 <= s14 ^ round_key[15:8];
                             s15 <= s15 ^ round_key[7:0];
-                            if (round_cnt == 9) begin
+                            if (round_cnt == max_round) begin
                                 state <= DONE;
-                                data_out <= {s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15};
+                                // Use intermediate values to capture post-AddRoundKey state
+                                data_out <= {s0 ^ round_key[127:120], s1 ^ round_key[119:112], 
+                                            s2 ^ round_key[111:104], s3 ^ round_key[103:96],
+                                            s4 ^ round_key[95:88], s5 ^ round_key[87:80],
+                                            s6 ^ round_key[79:72], s7 ^ round_key[71:64],
+                                            s8 ^ round_key[63:56], s9 ^ round_key[55:48],
+                                            s10 ^ round_key[47:40], s11 ^ round_key[39:32],
+                                            s12 ^ round_key[31:24], s13 ^ round_key[23:16],
+                                            s14 ^ round_key[15:8], s15 ^ round_key[7:0]};
                                 done <= 1;
                             end else begin
                                 round_cnt <= round_cnt + 1;
@@ -246,19 +266,28 @@ module aes_core (
         end
     end
     
-    // Key request - fix timing
+    // Key request timing - request key BEFORE it's needed
+    // Request at end of previous phase so it's ready for AddRoundKey
     always @(*) begin
-        if (state == IDLE && start)
+        if (state == IDLE && start) begin
             round_num = 0;  // Request round 0 key
-        else if (state == ROUND && phase == 3 && round_cnt < 9)
-            round_num = round_cnt + 1;  // Request next round key
-        else if (state == ROUND && phase == 1 && round_cnt == 9)
-            round_num = 10;  // Request final round key
-        else
+            key_req = 1;
+        end
+        else if (state == ROUND && phase == 2 && round_cnt < max_round) begin
+            // Request next key at end of MixColumns (phase 2)
+            // so it's ready for AddRoundKey (phase 3)
+            round_num = round_cnt + 1;
+            key_req = 1;
+        end
+        else if (state == ROUND && phase == 1 && round_cnt == max_round) begin
+            // Special case for final round (skip MixColumns)
+            round_num = max_round + 1;  // Final round uses max_round+1 key index
+            key_req = 1;
+        end
+        else begin
             round_num = round_cnt;
-            
-        key_req = (state == IDLE && start) || 
-                  (state == ROUND && ((phase == 3 && round_cnt < 9) || (phase == 1 && round_cnt == 9)));
+            key_req = 0;
+        end
     end
 
 endmodule

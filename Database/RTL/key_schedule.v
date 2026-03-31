@@ -287,12 +287,13 @@ module key_schedule (
                     end
                     
                     AES_192: begin
-                        w[0] <= key_in[255:224];
-                        w[1] <= key_in[223:192];
-                        w[2] <= key_in[191:160];
-                        w[3] <= key_in[159:128];
-                        w[4] <= key_in[127:96];
-                        w[5] <= key_in[95:64];
+                        // AES-192: 192-bit key in key_in[191:0]
+                        w[0] <= key_in[191:160];
+                        w[1] <= key_in[159:128];
+                        w[2] <= key_in[127:96];
+                        w[3] <= key_in[95:64];
+                        w[4] <= key_in[63:32];
+                        w[5] <= key_in[31:0];
                     end
                     
                     AES_256: begin
