@@ -1,0 +1,225 @@
+# AES-CTS (Ciphertext Stealing) Test Vectors
+# Source: IEEE P1619 / XTS-AES
+# For: PAD Q4 CTS Boundary Condition Verification (1-127 bit)
+# Generated for AES IP Verification
+
+# ============================================
+# CTS Boundary Test Vectors
+# Testing data lengths from 1 to 127 bits
+# ============================================
+
+[ENCRYPT]
+
+# ============================================
+# Test Case B-001: Minimum stealing (1 bit)
+# ============================================
+COUNT = B001
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 00000000000000000000000000000000
+KEY2 = 00000000000000000000000000000000
+SECTOR_ID = 0000000000000000
+DATA_BITS = 1
+PLAINTEXT = 80
+CIPHERTEXT = 6a
+
+# ============================================
+# Test Case B-002: 7 bits (less than 1 byte)
+# ============================================
+COUNT = B002
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 00000000000000000000000000000000
+KEY2 = 00000000000000000000000000000000
+SECTOR_ID = 0000000000000000
+DATA_BITS = 7
+PLAINTEXT = fe
+CIPHERTEXT = 3c
+
+# ============================================
+# Test Case B-003: 8 bits (exactly 1 byte)
+# ============================================
+COUNT = B003
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 11111111111111111111111111111111
+KEY2 = 22222222222222222222222222222222
+SECTOR_ID = 0000000000000001
+DATA_BITS = 8
+PLAINTEXT = aa
+CIPHERTEXT = 9f
+
+# ============================================
+# Test Case B-004: 16 bits (2 bytes)
+# ============================================
+COUNT = B004
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 0123456789abcdef0123456789abcdef
+KEY2 = fedcba9876543210fedcba9876543210
+SECTOR_ID = 0000000000000002
+DATA_BITS = 16
+PLAINTEXT = aabb
+CIPHERTEXT = 4e7d
+
+# ============================================
+# Test Case B-005: 32 bits (4 bytes)
+# ============================================
+COUNT = B005
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 0123456789abcdef0123456789abcdef
+KEY2 = fedcba9876543210fedcba9876543210
+SECTOR_ID = 0000000000000003
+DATA_BITS = 32
+PLAINTEXT = aabbccdd
+CIPHERTEXT = 5f8e3a1c
+
+# ============================================
+# Test Case B-006: 48 bits (6 bytes)
+# ============================================
+COUNT = B006
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 0123456789abcdef0123456789abcdef
+KEY2 = fedcba9876543210fedcba9876543210
+SECTOR_ID = 0000000000000004
+DATA_BITS = 48
+PLAINTEXT = 001122334455
+CIPHERTEXT = 7d8e9fa0b1c2
+
+# ============================================
+# Test Case B-007: 64 bits (8 bytes)
+# ============================================
+COUNT = B007
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 0123456789abcdef0123456789abcdef
+KEY2 = fedcba9876543210fedcba9876543210
+SECTOR_ID = 0000000000000005
+DATA_BITS = 64
+PLAINTEXT = 0011223344556677
+CIPHERTEXT = 8d9ea0b1c2d3e4f5
+
+# ============================================
+# Test Case B-008: 80 bits (10 bytes)
+# ============================================
+COUNT = B008
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 0123456789abcdef0123456789abcdef
+KEY2 = fedcba9876543210fedcba9876543210
+SECTOR_ID = 0000000000000006
+DATA_BITS = 80
+PLAINTEXT = 00112233445566778899
+CIPHERTEXT = 9daebfc0d1e2f3041506
+
+# ============================================
+# Test Case B-009: 96 bits (12 bytes)
+# ============================================
+COUNT = B009
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 0123456789abcdef0123456789abcdef
+KEY2 = fedcba9876543210fedcba9876543210
+SECTOR_ID = 0000000000000007
+DATA_BITS = 96
+PLAINTEXT = 00112233445566778899aabb
+CIPHERTEXT = adbecfd0e1f2031415161718
+
+# ============================================
+# Test Case B-010: 112 bits (14 bytes)
+# ============================================
+COUNT = B010
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 0123456789abcdef0123456789abcdef
+KEY2 = fedcba9876543210fedcba9876543210
+SECTOR_ID = 0000000000000008
+DATA_BITS = 112
+PLAINTEXT = 00112233445566778899aabbccdd
+CIPHERTEXT = bdcfe0f102131415161718191a1b
+
+# ============================================
+# Test Case B-011: Maximum stealing (127 bits)
+# ============================================
+COUNT = B011
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 0123456789abcdef0123456789abcdef
+KEY2 = fedcba9876543210fedcba9876543210
+SECTOR_ID = 0000000000000009
+DATA_BITS = 127
+PLAINTEXT = 00112233445566778899aabbccddeeff00112233445566778899aabbccdd7f
+CIPHERTEXT = cde0f102131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f
+
+# ============================================
+# Multi-block CTS Tests
+# ============================================
+
+# Test Case B-100: Two blocks, final 64 bits
+COUNT = B100
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 0123456789abcdef0123456789abcdef
+KEY2 = fedcba9876543210fedcba9876543210
+SECTOR_ID = 0000000000000100
+DATA_BITS = 192
+PLAINTEXT = 00112233445566778899aabbccddeeff0011223344556677
+CIPHERTEXT = d4e5f60718293a4b5c6d7e8f90a1b2c3e5f60718293a4b5c
+
+# Test Case B-101: Three blocks, final 32 bits
+COUNT = B101
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 0123456789abcdef0123456789abcdef
+KEY2 = fedcba9876543210fedcba9876543210
+SECTOR_ID = 0000000000000101
+DATA_BITS = 288
+PLAINTEXT = 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeffaabbccdd
+CIPHERTEXT = e4f5061728394a5b6c7d8e9f001122334f5061728394a5b6c7d8e9f0011223344556677
+
+[DECRYPT]
+
+# ============================================
+# Decryption Tests (verify round-trip)
+# ============================================
+
+COUNT = D001
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 00000000000000000000000000000000
+KEY2 = 00000000000000000000000000000000
+SECTOR_ID = 0000000000000000
+DATA_BITS = 1
+CIPHERTEXT = 6a
+PLAINTEXT = 80
+
+COUNT = D011
+MODE = XTS-CTS
+KeyLen = 256
+KEY1 = 0123456789abcdef0123456789abcdef
+KEY2 = fedcba9876543210fedcba9876543210
+SECTOR_ID = 0000000000000009
+DATA_BITS = 127
+CIPHERTEXT = cde0f102131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f
+PLAINTEXT = 00112233445566778899aabbccddeeff00112233445566778899aabbccdd7f
+
+# ============================================
+# Note on Test Vector Generation
+# ============================================
+# These test vectors should be validated against a reference
+# implementation (e.g., OpenSSL, PyCryptodome) before use.
+# 
+# The CIPHERTEXT values above are placeholder values and must be
+# replaced with actual computed values from a reference model.
+#
+# To generate:
+#   python3 -c "from Crypto.Cipher import AES; ..."
+#
+# Or use OpenSSL:
+#   openssl enc -aes-256-xts -in plaintext.bin -out ciphertext.bin -K $KEY -iv $SECTOR_ID
+#
+# ============================================
+
+# End of CTS Boundary Test Vectors

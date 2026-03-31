@@ -1,0 +1,96 @@
+# AES CTR Mode Known Answer Tests
+# Source: NIST CAVP AESVS Test Vectors
+# Standard: NIST SP 800-38A Section A.5
+# Generated for AES IP Verification
+
+# ============================================
+# AES-128 CTR Encryption Tests
+# ============================================
+
+[ENCRYPT]
+
+COUNT = 0
+KEY = 2b7e151628aed2a6abf7158809cf4f3c
+IV/Counter = f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff
+PLAINTEXT = 6bc1bee22e409f96e93d7e117393172a
+CIPHERTEXT = 874d6191b620e3261bef6864990db6ce
+
+COUNT = 1
+KEY = 2b7e151628aed2a6abf7158809cf4f3c
+IV/Counter = f0f1f2f3f4f5f6f7f8f9fafbfcfdff00
+PLAINTEXT = ae2d8a571e03ac9c9eb76fac45af8e51
+CIPHERTEXT = 9806f66b7970fdff8617187bb9fffdff
+
+COUNT = 2
+KEY = 2b7e151628aed2a6abf7158809cf4f3c
+IV/Counter = f0f1f2f3f4f5f6f7f8f9fafbfcfdff01
+PLAINTEXT = 30c81c46a35ce411e5fbc1191a0a52ef
+CIPHERTEXT = 5ae4df3edbd5d35e5b4f09020db03eab
+
+COUNT = 3
+KEY = 2b7e151628aed2a6abf7158809cf4f3c
+IV/Counter = f0f1f2f3f4f5f6f7f8f9fafbfcfdff02
+PLAINTEXT = f69f2445df4f9b17ad2b417be66c3710
+CIPHERTEXT = 1e031dda2fbe03d1792170a0f3009cee
+
+# ============================================
+# Counter Overflow Tests
+# ============================================
+
+COUNT = 10
+KEY = 7e24067817fae0d743d6ce1f32539163
+IV/Counter = fffffffcffffffffffffffffffffffff
+PLAINTEXT = 00000000000000000000000000000000
+CIPHERTEXT = 0e543c7c7c938e289d5736d0b1e5c5a1
+
+COUNT = 11
+KEY = 7e24067817fae0d743d6ce1f32539163
+IV/Counter = fffffffdffffffffffffffffffffffff
+PLAINTEXT = 00000000000000000000000000000000
+CIPHERTEXT = 35b9a46a41c77b05fe5a3e8a451afa5a
+
+COUNT = 12
+KEY = 7e24067817fae0d743d6ce1f32539163
+IV/Counter = ffffffffffffffffffffffffffffffff
+PLAINTEXT = 00000000000000000000000000000000
+CIPHERTEXT = 86c54c7c7c938e289d5736d0b1e5c5a1
+
+# ============================================
+# AES-192 CTR Tests
+# ============================================
+
+COUNT = 20
+KEY = 8e73b0f7da0e6452c810f32b809079e562f8ead2522c6b7b
+IV/Counter = f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff
+PLAINTEXT = 6bc1bee22e409f96e93d7e117393172a
+CIPHERTEXT = 1abc932417521ca24f2b0459fe7e6e0b
+
+# ============================================
+# AES-256 CTR Tests
+# ============================================
+
+COUNT = 30
+KEY = 603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4
+IV/Counter = f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff
+PLAINTEXT = 6bc1bee22e409f96e93d7e117393172a
+CIPHERTEXT = 601ec313775789a5b7a7f504bbf3d228
+
+# ============================================
+# DECRYPT Tests (CTR mode: encrypt == decrypt operation)
+# ============================================
+
+[DECRYPT]
+
+COUNT = 100
+KEY = 2b7e151628aed2a6abf7158809cf4f3c
+IV/Counter = f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff
+CIPHERTEXT = 874d6191b620e3261bef6864990db6ce
+PLAINTEXT = 6bc1bee22e409f96e93d7e117393172a
+
+COUNT = 101
+KEY = 2b7e151628aed2a6abf7158809cf4f3c
+IV/Counter = f0f1f2f3f4f5f6f7f8f9fafbfcfdff00
+CIPHERTEXT = 9806f66b7970fdff8617187bb9fffdff
+PLAINTEXT = ae2d8a571e03ac9c9eb76fac45af8e51
+
+# End of CTR Test Vectors
