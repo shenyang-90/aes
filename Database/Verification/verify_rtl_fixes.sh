@@ -61,8 +61,8 @@ run_test() {
     fi
     
     # Check results
-    local pass_count=$(grep -c "\[PASS\]" /tmp/${test_name}_sim.log 2>/dev/null || echo "0")
-    local fail_count=$(grep -c "\[FAIL\]" /tmp/${test_name}_sim.log 2>/dev/null || echo "0")
+    local pass_count=$(grep "\[PASS\]" /tmp/${test_name}_sim.log 2>/dev/null | wc -l | tr -d ' ')
+    local fail_count=$(grep "\[FAIL\]" /tmp/${test_name}_sim.log 2>/dev/null | wc -l | tr -d ' ')
     
     echo "  Pass count: $pass_count"
     echo "  Fail count: $fail_count"
@@ -135,7 +135,28 @@ else
     # Run specific bug verification
     case $1 in
         003)
-            run_test "tc_key_length" "003"
+            # Run all 6 individual key length tests
+            TOTAL_PASS=0
+            TOTAL_FAIL=0
+            for test in tc_key_length_192_0 tc_key_length_192_1 tc_key_length_192_2 \
+                        tc_key_length_256_0 tc_key_length_256_1 tc_key_length_256_2; do
+                run_test "$test" "003"
+                if [ $? -eq 0 ]; then
+                    TOTAL_PASS=$((TOTAL_PASS + 1))
+                else
+                    TOTAL_FAIL=$((TOTAL_FAIL + 1))
+                fi
+            done
+            print_header "BUG-003 Summary"
+            echo "Passed: $TOTAL_PASS/6"
+            echo "Failed: $TOTAL_FAIL/6"
+            if [ $TOTAL_FAIL -eq 0 ]; then
+                print_pass "BUG-003 (AES-192/256 key length)"
+                exit 0
+            else
+                print_fail "BUG-003 (AES-192/256 key length)"
+                exit 1
+            fi
             ;;
         004)
             run_test "tc_gcm_basic" "004"

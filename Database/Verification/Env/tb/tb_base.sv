@@ -133,6 +133,9 @@ module tb_base;
             apb_write(REG_KEY_6, key[63:32]);
             apb_write(REG_KEY_7, key[31:0]);
             
+            // Wait for key registers to update (key_schedule samples on next clock)
+            repeat (50) @(posedge clk);
+            
             // Write IV for non-ECB modes
             if (mode != 3'd0) begin
                 apb_write(REG_IV_0, iv[127:96]);
@@ -149,6 +152,10 @@ module tb_base;
             
             // Receive result
             axis_recv(ciphertext);
+            
+            // Wait for key expansion to complete before returning
+            // This prevents the next test from interfering
+            repeat (300) @(posedge clk);
         end
     endtask
 

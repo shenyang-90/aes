@@ -29,12 +29,12 @@ module tc_key_length;
         // AES-192 Vector 1
         keys_192[1] = 192'h00112233445566778899aabbccddeeff0011223344556677;
         plaintexts_192[1] = 128'h11111111111111111111111111111111;
-        ciphertexts_192[1] = 128'h795b5a5a5b86f8d78d9c9c9d78787878;
+        ciphertexts_192[1] = 128'h25154c8f3176e38866e290eccfae7e80;
         
         // AES-192 Vector 2 (all zeros)
         keys_192[2] = 192'h000000000000000000000000000000000000000000000000;
         plaintexts_192[2] = 128'h00000000000000000000000000000000;
-        ciphertexts_192[2] = 128'hdda97ca4864cdfe06eaf70a0ec0d7191;
+        ciphertexts_192[2] = 128'haae06992acbf52a3e8f4a96ec9300bd7;
         
         // AES-256 Vector 0
         keys_256[0] = 256'h000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f;
@@ -44,12 +44,12 @@ module tc_key_length;
         // AES-256 Vector 1
         keys_256[1] = 256'h00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff;
         plaintexts_256[1] = 128'h11111111111111111111111111111111;
-        ciphertexts_256[1] = 128'h795b5a5a5b86f8d78d9c9c9d78787878;
+        ciphertexts_256[1] = 128'h8ce68f303fc9e1c6124cc4309689e3cb;
         
         // AES-256 Vector 2 (all zeros)
         keys_256[2] = 256'h0000000000000000000000000000000000000000000000000000000000000000;
         plaintexts_256[2] = 128'h00000000000000000000000000000000;
-        ciphertexts_256[2] = 128'h8ea2b7ca516745bfeafc49904b496089;
+        ciphertexts_256[2] = 128'hdc95c078a2408989ad48a21492842087;
     end
 
     integer i;

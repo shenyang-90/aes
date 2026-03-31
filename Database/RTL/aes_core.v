@@ -42,11 +42,11 @@ module aes_core (
         end
     endfunction
     
-    // S-Box
+    // S-Box - inline initialization (synthesizable)
+    // Using pure Verilog initialization instead of $readmemh for synthesis compatibility
     reg [7:0] sbox [0:255];
-    initial $readmemh("aes_sbox.hex", sbox);
     
-    // For now, use inline sbox to avoid file dependency
+    // Synthesizable S-Box initialization
     initial begin
         sbox[8'h00] = 8'h63; sbox[8'h01] = 8'h7C; sbox[8'h02] = 8'h77; sbox[8'h03] = 8'h7B;
         sbox[8'h04] = 8'hF2; sbox[8'h05] = 8'h6B; sbox[8'h06] = 8'h6F; sbox[8'h07] = 8'hC5;

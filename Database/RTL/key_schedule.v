@@ -191,40 +191,44 @@ module key_schedule (
     always @(*) begin
         next_state = state;
         
-        case (state)
-            IDLE: begin
-                if (load_key)
-                    next_state = LOAD;
-            end
-            
-            LOAD: begin
-                next_state = EXPAND;
-            end
-            
-            EXPAND: begin
-                if (word_cnt >= total_words)
-                    next_state = DONE;
-                else if (word_cnt < nk)
-                    next_state = WRITE;  // Skip COMPUTE for initial words, just increment
-                else
-                    next_state = COMPUTE;
-            end
-            
-            COMPUTE: begin
-                next_state = WRITE;
-            end
-            
-            WRITE: begin
-                next_state = EXPAND;
-            end
-            
-            DONE: begin
-                if (!load_key)  // Wait for load_key to deassert
+        // Priority: load_key always restarts to LOAD (except when already in LOAD)
+        if (load_key && state != LOAD)
+            next_state = LOAD;
+        else begin
+            case (state)
+                IDLE: begin
+                    // Handled by priority above
+                end
+                
+                LOAD: begin
+                    next_state = EXPAND;
+                end
+                
+                EXPAND: begin
+                    if (word_cnt >= total_words)
+                        next_state = DONE;
+                    else if (word_cnt < nk)
+                        next_state = WRITE;  // Skip COMPUTE for initial words
+                    else
+                        next_state = COMPUTE;
+                end
+                
+                COMPUTE: begin
+                    next_state = WRITE;
+                end
+                
+                WRITE: begin
+                    next_state = EXPAND;
+                end
+                
+                DONE: begin
+                    // Stay in DONE until new load_key (handled by priority)
                     next_state = IDLE;
-            end
-            
-            default: next_state = IDLE;
-        endcase
+                end
+                
+                default: next_state = IDLE;
+            endcase
+        end
     end
     
     //========================================================================
