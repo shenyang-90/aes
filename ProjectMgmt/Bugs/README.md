@@ -8,6 +8,11 @@
 | BUG-003 | Major | ✅ CLOSED | AES-192/256 key length incomplete | Design Agent | 2026-03-31 |
 | BUG-004 | Major | 🟡 PARTIAL | GCM mode implementation incomplete | Design Agent | 2026-04-10 |
 | BUG-005 | Minor | 🟡 PARTIAL | XTS mode tweak implementation issue | Design Agent | 2026-04-08 |
+| BUG-006 | Major | 🔴 OPEN | sbox_masked placeholder implementation | Design Agent | 2026-04-10 |
+| BUG-007 | Low | 🔴 OPEN | State machine naming inconsistency | Design Agent | 2026-04-15 |
+| BUG-008 | Low | 🔴 OPEN | XTS tweak block_num simplification | Design Agent | 2026-04-12 |
+| BUG-009 | Low | 🔴 OPEN | GCM multi-block AAD/CT processing | Design Agent | 2026-04-15 |
+| BUG-010 | Low | 🔴 OPEN | CRC checker not using data_in | Design Agent | 2026-04-10 |
 
 ## Bug Status Legend
 
@@ -43,9 +48,18 @@ Found → Logged → Triage → Assigned → Fixed → Verified → Closed
 ## 查看 Bug 详情
 
 点击上方表格中的 Bug ID 查看完整信息：
-- [BUG-003.md](./BUG-003.md) - AES-192/256 密钥长度支持
-- [BUG-004.md](./BUG-004.md) - GCM 模式实现
-- [BUG-005.md](./BUG-005.md) - XTS 模式 tweak 实现
+
+### 功能 Bug
+- [BUG-003.md](./BUG-003.md) - AES-192/256 密钥长度支持 ✅ CLOSED
+- [BUG-004.md](./BUG-004.md) - GCM 模式实现 🟡 PARTIAL
+- [BUG-005.md](./BUG-005.md) - XTS 模式 tweak 实现 🟡 PARTIAL
+
+### RTL 代码审查发现的问题
+- [BUG-006.md](./BUG-006.md) - sbox_masked placeholder 实现 🔴 OPEN
+- [BUG-007.md](./BUG-007.md) - 状态机命名不一致 🔴 OPEN
+- [BUG-008.md](./BUG-008.md) - XTS tweak block_num 简化 🔴 OPEN
+- [BUG-009.md](./BUG-009.md) - GCM 多块 AAD/CT 处理 🔴 OPEN
+- [BUG-010.md](./BUG-010.md) - CRC checker 未使用 data_in 🔴 OPEN
 
 ---
 
