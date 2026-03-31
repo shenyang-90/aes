@@ -188,6 +188,7 @@ module aes_top (
         .core_done      (core_done),
         .key_load       (key_load),
         .iv_load        (iv_load),
+        .key_ready      (u_key_schedule.keys_valid),  // Wait for key schedule
         .aes_mode       (aes_mode),
         .key_mode       (key_mode),
         .encrypt        (encrypt),
@@ -199,13 +200,15 @@ module aes_top (
     // Key Schedule
     wire [127:0] round_key;
     wire         key_valid;
+    wire         core_key_req;
+    wire [3:0]   core_round_num;
     
     key_schedule u_key_schedule (
         .clk        (clk),
         .rst_n      (rst_n),
         .load_key   (key_load),
-        .key_req    (1'b1),  // Always request for now
-        .round_num  (4'd0),  // Connect to core
+        .key_req    (core_key_req),
+        .round_num  (core_round_num),
         .key_len    (key_mode),
         .key_in     (key_reg),
         .round_key  (round_key),
@@ -227,8 +230,8 @@ module aes_top (
         .data_out   (core_data_out),
         .iv         (iv_reg),
         .round_key  (round_key),
-        .round_num  (),
-        .key_req    ()
+        .round_num  (core_round_num),
+        .key_req    (core_key_req)
     );
     
     // Output assignment

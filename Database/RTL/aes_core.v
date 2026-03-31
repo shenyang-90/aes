@@ -22,6 +22,14 @@ module aes_core (
 
     localparam [1:0] AES_128 = 2'b00;
     
+    // xtime function: multiply by x in GF(2^8)
+    function [7:0] xtime;
+        input [7:0] b;
+        begin
+            xtime = (b << 1) ^ (b[7] ? 8'h1b : 8'h00);
+        end
+    endfunction
+    
     // S-Box
     reg [7:0] sbox [0:255];
     initial $readmemh("aes_sbox.hex", sbox);
@@ -159,16 +167,46 @@ module aes_core (
                                 phase <= 2;
                         end
                         2: begin // MixColumns
-                            // Process each column
-                            // Column 0
+                            // Process each column using xtime (multiply by x in GF(2^8))
+                            // Column 0 (s0-s3)
                             begin
-                                reg [7:0] t, u;
-                                t = s0 ^ s1 ^ s2 ^ s3;
-                                u = s0;
-                                s0 <= s0 ^ t ^ ((s0 ^ s1) << 1);
-                                s1 <= s1 ^ t ^ ((s1 ^ s2) << 1);
-                                s2 <= s2 ^ t ^ ((s2 ^ s3) << 1);
-                                s3 <= s3 ^ t ^ ((s3 ^ u) << 1);
+                                reg [7:0] t0, u0;
+                                t0 = s0 ^ s1 ^ s2 ^ s3;
+                                u0 = s0;
+                                s0 <= s0 ^ t0 ^ xtime(s0 ^ s1);
+                                s1 <= s1 ^ t0 ^ xtime(s1 ^ s2);
+                                s2 <= s2 ^ t0 ^ xtime(s2 ^ s3);
+                                s3 <= s3 ^ t0 ^ xtime(s3 ^ u0);
+                            end
+                            // Column 1 (s4-s7)
+                            begin
+                                reg [7:0] t1, u1;
+                                t1 = s4 ^ s5 ^ s6 ^ s7;
+                                u1 = s4;
+                                s4 <= s4 ^ t1 ^ xtime(s4 ^ s5);
+                                s5 <= s5 ^ t1 ^ xtime(s5 ^ s6);
+                                s6 <= s6 ^ t1 ^ xtime(s6 ^ s7);
+                                s7 <= s7 ^ t1 ^ xtime(s7 ^ u1);
+                            end
+                            // Column 2 (s8-s11)
+                            begin
+                                reg [7:0] t2, u2;
+                                t2 = s8 ^ s9 ^ s10 ^ s11;
+                                u2 = s8;
+                                s8  <= s8  ^ t2 ^ xtime(s8  ^ s9);
+                                s9  <= s9  ^ t2 ^ xtime(s9  ^ s10);
+                                s10 <= s10 ^ t2 ^ xtime(s10 ^ s11);
+                                s11 <= s11 ^ t2 ^ xtime(s11 ^ u2);
+                            end
+                            // Column 3 (s12-s15)
+                            begin
+                                reg [7:0] t3, u3;
+                                t3 = s12 ^ s13 ^ s14 ^ s15;
+                                u3 = s12;
+                                s12 <= s12 ^ t3 ^ xtime(s12 ^ s13);
+                                s13 <= s13 ^ t3 ^ xtime(s13 ^ s14);
+                                s14 <= s14 ^ t3 ^ xtime(s14 ^ s15);
+                                s15 <= s15 ^ t3 ^ xtime(s15 ^ u3);
                             end
                             phase <= 3;
                         end

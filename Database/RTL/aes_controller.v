@@ -28,6 +28,9 @@ module aes_controller (
     output reg         key_load,         // Load key
     output reg         iv_load,          // Load IV
     
+    // Key schedule status
+    input  wire        key_ready,        // Key schedule ready (all round keys valid)
+    
     // Mode control
     output reg  [2:0]  aes_mode,         // ECB/CBC/CTR/GCM/XTS/CTS
     output reg  [1:0]  key_mode,         // 128/192/256
@@ -58,13 +61,14 @@ module aes_controller (
     //========================================================================
     localparam [3:0] IDLE        = 4'd0;
     localparam [3:0] LOAD_KEY    = 4'd1;
-    localparam [3:0] LOAD_IV     = 4'd2;
-    localparam [3:0] WAIT_DATA   = 4'd3;
-    localparam [3:0] PROCESS     = 4'd4;
-    localparam [3:0] WAIT_CORE   = 4'd5;
-    localparam [3:0] OUTPUT      = 4'd6;
-    localparam [3:0] DONE        = 4'd7;
-    localparam [3:0] ERROR       = 4'd8;
+    localparam [3:0] WAIT_KEY    = 4'd2;  // Wait for key schedule to complete
+    localparam [3:0] LOAD_IV     = 4'd3;
+    localparam [3:0] WAIT_DATA   = 4'd4;
+    localparam [3:0] PROCESS     = 4'd5;
+    localparam [3:0] WAIT_CORE   = 4'd6;
+    localparam [3:0] OUTPUT      = 4'd7;
+    localparam [3:0] DONE        = 4'd8;
+    localparam [3:0] ERROR       = 4'd9;
     
     reg [3:0] state, next_state;
     
@@ -100,7 +104,12 @@ module aes_controller (
             end
             
             LOAD_KEY: begin
-                next_state = LOAD_IV;
+                next_state = WAIT_KEY;  // New state to wait for key expansion
+            end
+            
+            WAIT_KEY: begin
+                if (key_ready)
+                    next_state = LOAD_IV;
             end
             
             LOAD_IV: begin

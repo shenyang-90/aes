@@ -276,21 +276,23 @@ module key_schedule (
         case (state)
             LOAD: begin
                 // Load initial Nk words from key_in
+                // Note: Keys are stored in upper bits for smaller key sizes
+                // AES-128: key_in[255:128], AES-192: key_in[255:64], AES-256: key_in[255:0]
                 case (key_len)
                     AES_128: begin
-                        w[0] <= key_in[127:96];
-                        w[1] <= key_in[95:64];
-                        w[2] <= key_in[63:32];
-                        w[3] <= key_in[31:0];
+                        w[0] <= key_in[255:224];
+                        w[1] <= key_in[223:192];
+                        w[2] <= key_in[191:160];
+                        w[3] <= key_in[159:128];
                     end
                     
                     AES_192: begin
-                        w[0] <= key_in[191:160];
-                        w[1] <= key_in[159:128];
-                        w[2] <= key_in[127:96];
-                        w[3] <= key_in[95:64];
-                        w[4] <= key_in[63:32];
-                        w[5] <= key_in[31:0];
+                        w[0] <= key_in[255:224];
+                        w[1] <= key_in[223:192];
+                        w[2] <= key_in[191:160];
+                        w[3] <= key_in[159:128];
+                        w[4] <= key_in[127:96];
+                        w[5] <= key_in[95:64];
                     end
                     
                     AES_256: begin
@@ -336,31 +338,36 @@ module key_schedule (
         endcase
     end
     
-    // keys_valid signal
+    // keys_valid signal - stays high after expansion is done
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             keys_valid <= 1'b0;
         end else begin
-            case (state)
-                DONE: keys_valid <= 1'b1;
-                default: keys_valid <= 1'b0;
-            endcase
+            if (state == DONE)
+                keys_valid <= 1'b1;
+            else if (load_key)
+                keys_valid <= 1'b0;  // Clear when starting new expansion
         end
     end
     
     //========================================================================
     // Round Key Output
-    // Round key i = {w[4*i+3], w[4*i+2], w[4*i+1], w[4*i]}
+    // Round key i = {w[4*i], w[4*i+1], w[4*i+2], w[4*i+3]}  // Note: reverse order
+    // w[0] is most significant word, w[3] is least significant word
     //========================================================================
+    // Use separate wire for index calculation to avoid complex expression issues
+    wire [6:0] rk_idx = {3'b000, round_num} << 2;  // round_num * 4
+    
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             round_key <= 128'd0;
             key_valid <= 1'b0;
-        end else if (key_req && (state == DONE || keys_valid)) begin
-            round_key <= {w[{2'b00, round_num} * 4 + 3], 
-                          w[{2'b00, round_num} * 4 + 2],
-                          w[{2'b00, round_num} * 4 + 1], 
-                          w[{2'b00, round_num} * 4]};
+        end else if (key_req && keys_valid) begin
+            // Reverse order: w[0] is high bits, w[3] is low bits
+            round_key <= {w[rk_idx], 
+                          w[rk_idx + 1],
+                          w[rk_idx + 2], 
+                          w[rk_idx + 3]};
             key_valid <= 1'b1;
         end else begin
             key_valid <= 1'b0;
