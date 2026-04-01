@@ -15,15 +15,17 @@
 
 ```
 sandbox/aes/ProjectMgmt/Tasks/
-├── AI_Yang/           # AI Yang 主代理任务
-├── Design_Agent/      # Design Agent 任务
-├── DFT_Agent/         # DFT Agent 任务
-├── FuSa_Engineer/     # 功能安全工程师任务
-├── IP_Architect/      # 架构师任务
-├── PM_Agent/          # PM Agent 任务
-├── Verification_Agent/ # 验证工程师任务
-└── Coding_Yang/       # Coding Yang 任务记录（副本）
+├── AI_Yang/              # AI Yang 主代理任务摘要
+├── Design_Agent/         # Design Agent 任务摘要
+├── DFT_Agent/            # DFT Agent 任务摘要
+├── FuSa_Engineer/        # 功能安全工程师任务摘要
+├── IP_Architect/         # 架构师任务摘要
+├── PM_Agent/             # PM Agent 任务摘要
+├── Verification_Agent/   # 验证工程师任务摘要
+└── Coding_Yang/          # Coding Yang 任务记录副本
 ```
+
+**重要**: Tasks 文件夹只存放**任务摘要**（1-2页），实际交付物必须放到项目指定目录！
 
 ### 任务文件命名规范
 
@@ -49,11 +51,26 @@ sandbox/task_queue/archive/     ← 归档任务
 ```
 sandbox/aes/ProjectMgmt/Tasks/{Agent}/
 ├── TASK_LIST.md          # 任务清单
-├── Completed/            # 已完成任务
-│   ├── RESULT-TASK-xxx.md
-│   └── ...
+├── Completed/            # 已完成任务摘要（1-2页）
+│   └── RESULT-TASK-xxx.md
 └── ...
 ```
+
+## 交付物存放位置
+
+| Agent | 任务摘要位置 | 实际交付物位置 |
+|-------|--------------|----------------|
+| **Design Agent** | `Tasks/Design_Agent/Completed/` | `Database/Docs/Design/` |
+| **DFT Agent** | `Tasks/DFT_Agent/Completed/` | `Database/Docs/DFT/` |
+| **FuSa Engineer** | `Tasks/FuSa_Engineer/Completed/` | `Database/Docs/FuSa/` |
+| **IP Architect** | `Tasks/IP_Architect/Completed/` | `Database/Docs/Arch/` |
+| **Verification Agent** | `Tasks/Verification_Agent/Completed/` | `Database/Verification/` |
+| **Coding Yang** | `task_queue/completed/` | `Database/RTL/` |
+
+**规范**:
+- Tasks 文件夹只放**任务完成摘要**（1-2页，说明任务完成状态、关键成果、待办事项）
+- 详细设计文档、代码、报告等必须放到项目指定目录
+- 任务摘要中必须注明完整交付物的位置链接
 
 ## 注意事项
 
