@@ -278,39 +278,332 @@
 
 #### Core B 延迟时钟方案
 
-为降低共因故障风险，Core B 使用相对于 Core A 延迟的时钟：
+⚠️ **重要修正**：仅延迟时钟而输入数据同时到达会导致时序不一致！正确的方案需要同时考虑数据和时钟的对齐。
+
+##### 方案 A: 延迟锁存输入数据（推荐）
 
 ```verilog
-// 时钟延迟实现（建议延迟 2-4 个时钟周期）
-module clock_delay (
-    input  wire clk_in,
-    input  wire rst_n,
-    output wire clk_delayed
+module lockstep_with_delay (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire [127:0] data_in,
+    input  wire        data_valid,
+    // ... other inputs ...
+    output wire [127:0] safe_result,
+    output wire        fault_detected
 );
-    reg [1:0] delay_reg;
+    // Core A: 使用原始时钟，原始数据
+    wire [127:0] result_a;
+    wire         done_a;
     
-    always @(posedge clk_in or negedge rst_n) begin
-        if (!rst_n)
-            delay_reg <= 2'b00;
-        else
-            delay_reg <= {delay_reg[0], 1'b1};
+    aes_core u_core_a (
+        .clk      (clk),
+        .data_in  (data_in),      // 原始数据
+        .data_out (result_a),
+        .done     (done_a),
+        // ...
+    );
+    
+    // Core B: 使用相同时钟，但输入数据延迟锁存
+    reg [127:0] data_in_delayed;
+    reg         data_valid_delayed;
+    reg [1:0]   delay_cnt;
+    
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            delay_cnt <= 2'd0;
+            data_in_delayed <= 128'd0;
+            data_valid_delayed <= 1'b0;
+        end else if (data_valid) begin
+            if (delay_cnt < 2'd2) begin  // 延迟2个周期
+                delay_cnt <= delay_cnt + 1'b1;
+                data_in_delayed <= data_in;  // 锁存输入
+                data_valid_delayed <= 1'b0;
+            end else begin
+                data_valid_delayed <= 1'b1;
+            end
+        end else begin
+            data_valid_delayed <= 1'b0;
+        end
     end
     
-    // 延迟后的时钟（或使用时钟分相）
-    assign clk_delayed = delay_reg[1] ? clk_in : 1'b0;
+    wire [127:0] result_b;
+    wire         done_b;
+    
+    aes_core u_core_b (
+        .clk      (clk),
+        .data_in  (data_in_delayed),  // 延迟后的数据
+        .data_out (result_b),
+        .done     (done_b),
+        // ...
+    );
+    
+    // 比较时对齐：result_a 需要延迟以匹配 result_b 的延迟
+    reg [127:0] result_a_delay1, result_a_delay2;
+    reg         done_a_delay1, done_a_delay2;
+    
+    always @(posedge clk) begin
+        result_a_delay1 <= result_a;
+        result_a_delay2 <= result_a_delay1;
+        done_a_delay1 <= done_a;
+        done_a_delay2 <= done_a_delay1;
+    end
+    
+    // 最终比较使用对齐后的信号
+    wire [127:0] result_a_aligned = result_a_delay2;
+    wire         done_a_aligned = done_a_delay2;
+    
+    assign fault_detected = done_a_aligned && done_b && (result_a_aligned != result_b);
+    assign safe_result = fault_detected ? 128'd0 : result_a_aligned;
+    
 endmodule
 ```
 
-**延迟时钟的优势**：
-1. 同一时钟边沿故障不会同时影响两核
-2. 电源毛刺影响时间错开
-3. EMI 干扰影响降低
+**方案 A 特点**：
+- Core B 处理的是延迟后的数据
+- Core A 结果延迟对齐 Core B
+- 同一时钟边沿故障影响时间错开
+- 实现简单，时序清晰
 
-**比较逻辑调整**：
-- Core A 结果需延迟对齐 Core B 结果
-- 或 Core B 结果提前采样
+##### 方案 B: 反相时钟（更简单的替代方案）
 
-**建议延迟周期**：2-4 个时钟周期（平衡防护效果与复杂度）
+```verilog
+// Core B 使用反相时钟（下降沿触发）
+wire clk_inv = ~clk;
+
+aes_core u_core_b (
+    .clk      (clk_inv),  // 反相时钟
+    .data_in  (data_in),  // 相同数据
+    .data_out (result_b),
+    .done     (done_b),
+    // ...
+);
+```
+
+**方案 B 特点**：
+- 上升沿和下降沿不会同时受同一毛刺影响
+- 实现最简单，资源最少
+- 防护效果弱于方案 A，但优于无时钟分离
+
+##### 比较逻辑说明
+
+无论哪种方案，比较时都需要确保两核结果在时间上是同一笔数据的输出：
+
+```
+时序图（方案A，延迟2周期）：
+
+Cycle:     0      1      2      3      4      5      6
+           |      |      |      |      |      |      |
+Data In    |<==== Data 0 =====>|      |      |      |
+           |      |      |      |      |      |      |
+Core A     |<==== 处理 Data 0 ========>|<=== Result A
+           |      |      |      |      |      |      |
+Data B     |      |      |<==== Data 0 =====>|      |
+           |      |      |      |      |      |      |
+Core B     |      |      |<==== 处理 Data 0 ========>|<== Result B
+           |      |      |      |      |      |      |
+Result A'  |      |      |      |      |      |<=== Result A (延迟对齐)
+           |      |      |      |      |      |      |
+Compare    |      |      |      |      |      |<=== Compare A' vs B
+```
+
+**建议**：采用方案 A，延迟 2 个时钟周期，平衡防护效果与复杂度。
+
+---
+
+#### 安全机制自检 (BIST) 实现方案
+
+##### BIST vs DFT 的关系
+
+| 类型 | 目的 | 触发时机 | 实现方式 |
+|------|------|----------|----------|
+| **DFT** | 制造测试 | 生产测试 | 扫描链、JTAG |
+| **BIST** | 功能安全自检 | 上电/周期性 | 软件触发 + 硬件自检 |
+| **故障注入** | 验证安全机制有效性 | 测试阶段 | 专用测试接口 |
+
+**结论**：安全机制自检 (BIST) 需要**独立于 DFT 的故障注入功能**！
+
+##### BIST 实现架构
+
+```verilog
+module safety_bist (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire        bist_start,      // 软件触发
+    output reg         bist_done,
+    output reg         bist_pass,       // 1=通过, 0=失败
+    output reg  [2:0]  bist_fail_id,    // 失败的测试项
+    
+    // 故障注入接口（仅测试模式使用）
+    output reg         fi_enable,       // 故障注入使能
+    output reg  [7:0]  fi_target,       // 故障目标选择
+    output reg         fi_trigger,      // 故障触发
+    
+    // 被测安全机制信号
+    input  wire        fault_detected,
+    input  wire        crc_error,
+    input  wire        timeout_flag
+);
+
+// BIST 测试项定义
+localparam TEST_LOCKSTEP   = 3'd0;  // Dual-rail 比较器自检
+localparam TEST_CRC        = 3'd1;  // CRC checker 自检
+localparam TEST_TIMEOUT    = 3'd2;  // Timeout 监控自检
+localparam TEST_INTERRUPT  = 3'd3;  // 中断上报自检
+
+reg [2:0] test_state;
+reg [15:0] test_cnt;
+
+// BIST 状态机
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        test_state <= 3'd0;
+        bist_done <= 1'b0;
+        bist_pass <= 1'b0;
+        fi_enable <= 1'b0;
+    end else begin
+        case (test_state)
+            IDLE: begin
+                if (bist_start) begin
+                    test_state <= TEST_LOCKSTEP;
+                    test_cnt <= 16'd0;
+                    bist_done <= 1'b0;
+                end
+            end
+            
+            // ===== TEST 1: Lockstep 比较器自检 =====
+            TEST_LOCKSTEP: begin
+                // 注入故障：强制 Core B 输出与 Core A 不同
+                fi_enable <= 1'b1;
+                fi_target <= 8'h01;  // 选择 Core B 数据注入
+                
+                // 等待 fault_detected 置位
+                if (fault_detected) begin
+                    // 安全机制正确检测到故障
+                    fi_enable <= 1'b0;
+                    test_state <= TEST_CRC;
+                end else if (test_cnt > 16'd1000) begin
+                    // 超时未检测到故障 -> 自检失败
+                    bist_pass <= 1'b0;
+                    bist_fail_id <= TEST_LOCKSTEP;
+                    bist_done <= 1'b1;
+                    test_state <= IDLE;
+                end
+                test_cnt <= test_cnt + 1'b1;
+            end
+            
+            // ===== TEST 2: CRC Checker 自检 =====
+            TEST_CRC: begin
+                // 注入错误 CRC 数据
+                fi_enable <= 1'b1;
+                fi_target <= 8'h02;  // 选择 CRC 数据注入
+                
+                if (crc_error) begin
+                    fi_enable <= 1'b0;
+                    test_state <= TEST_TIMEOUT;
+                end else if (test_cnt > 16'd1000) begin
+                    bist_pass <= 1'b0;
+                    bist_fail_id <= TEST_CRC;
+                    bist_done <= 1'b1;
+                    test_state <= IDLE;
+                end
+                test_cnt <= test_cnt + 1'b1;
+            end
+            
+            // ===== TEST 3: Timeout 监控自检 =====
+            TEST_TIMEOUT: begin
+                // 强制状态机停滞（通过 fi_target 控制）
+                fi_enable <= 1'b1;
+                fi_target <= 8'h04;  // 强制 FSM stall
+                
+                if (timeout_flag) begin
+                    fi_enable <= 1'b0;
+                    bist_pass <= 1'b1;  // 所有测试通过
+                    bist_done <= 1'b1;
+                    test_state <= IDLE;
+                end else if (test_cnt > TIMEOUT_THRESHOLD + 16'd100) begin
+                    bist_pass <= 1'b0;
+                    bist_fail_id <= TEST_TIMEOUT;
+                    bist_done <= 1'b1;
+                    test_state <= IDLE;
+                end
+                test_cnt <= test_cnt + 1'b1;
+            end
+            
+            default: test_state <= IDLE;
+        endcase
+    end
+end
+
+endmodule
+```
+
+##### 故障注入实现（无需 DFT）
+
+```verilog
+// 在 fault_detector 模块中添加测试接口
+module fault_detector (
+    // ... 正常接口 ...
+    
+    // BIST 测试接口（仅测试模式连接）
+    input  wire        test_en,         // 测试使能
+    input  wire [7:0]  test_target,     // 测试目标选择
+    input  wire        test_trigger,    // 测试触发
+    
+    // 被测信号输出（用于 BIST 监控）
+    output wire        fault_det_out,   // fault_detected 输出
+    output wire        int_fault_out    // 中断输出
+);
+
+// 测试模式下的故障注入
+wire [127:0] result_b_test;
+assign result_b_test = test_en ? (result_b ^ test_mask) : result_b;
+
+// 正常比较逻辑（使用可能被注入故障的 result_b_test）
+assign fault_detected = (result_a != result_b_test);
+
+// 输出监控
+assign fault_det_out = fault_detected;
+assign int_fault_out = int_fault;
+
+endmodule
+```
+
+##### BIST 寄存器接口
+
+| 寄存器 | 地址 | 位 | 名称 | 描述 |
+|--------|------|-----|------|------|
+| BIST_CTRL | 0x50 | [0] | START | 启动 BIST |
+| | | [1] | MODE | 0=上电自检, 1=周期自检 |
+| BIST_STATUS | 0x54 | [0] | DONE | BIST 完成 |
+| | | [1] | PASS | 1=通过, 0=失败 |
+| | | [4:2] | FAIL_ID | 失败的测试项 |
+
+##### BIST 触发策略
+
+```
+上电自检 (Power-On BIST):
+  - 芯片上电后自动执行
+  - 约 10-100us 完成
+  - 结果存入 BIST_STATUS
+  - 失败可触发安全状态
+
+周期性自检 (Periodic BIST):
+  - 软件定时触发（建议每 100ms-1s）
+  - 可分段执行减少性能影响
+  - 后台执行，不阻塞正常运算
+
+按需自检 (On-Demand BIST):
+  - 软件主动触发
+  - 用于故障排查
+  - 可单独测试某个安全机制
+```
+
+**关键设计原则**：
+1. BIST 故障注入接口与正常功能完全隔离（通过 test_en 控制）
+2. BIST 不依赖 DFT 扫描链，独立实现
+3. 故障注入只影响测试目标，不影响其他模块
+4. 提供明确的通过/失败状态，便于软件决策
 
 ### 6.3 中期修正 (Before DDR)
 
