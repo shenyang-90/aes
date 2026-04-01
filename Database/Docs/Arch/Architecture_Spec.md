@@ -4,12 +4,13 @@
 
 | 字段 | 值 |
 |------|-----|
-| **版本** | v1.0 |
-| **日期** | 2026-03-31 |
+| **版本** | v1.1 |
+| **日期** | 2026-04-01 |
 | **作者** | System Architect |
-| **状态** | Reviewed - PAD Gate Approved |
+| **状态** | Updated - Lockstep Integration |
 | **评审** | AI Yang (Quality Gatekeeper) |
 | **ASIL** | ASIL-D |
+| **变更** | 新增双核锁步架构支持，可配置安全策略 |
 
 ## 目录
 
@@ -45,37 +46,39 @@
 ### 2.1 顶层架构
 
 ```
-+------------------+        +------------------+
-|   AXI4-Stream    |--------|   AES Controller  |
-|     Slave        |        |                  |
-+------------------+        +---------+--------+
-                                      |
-            +-------------------------+-------------------------+
-            |                         |                         |
-    +-------v-------+        +--------v--------+       +--------v--------+
-    |  Key Manager  |        |   AES Core      |       |  Mode Controller |
-    |  (w/ Masking) |        |  (Masked SBox)  |       |  (ECB/CBC/CTR/   |
-    +---------------+        +-----------------+       |   GCM/XTS/CTS)  |
-            |                         |                +-----------------+
-            v                         v
-    +----------------+      +------------------+
-    | Key Schedule   |      |  Data Path       |
-    | (Masked)       |      |  (Shuffled)      |
-    +----------------+      +------------------+
+                    +------------------------------------------+
+                    |            aes_top                         |
+                    |  +-----------------+    +---------------+ |
+   Input       ---> |  |   Core A        |    |   Core B      | |
+                    |  |  (Primary)      |    |  (Lockstep)   | |
+                    |  +--------+--------+    +--------+------+ |
+                    |           |                      |        |
+                    |           v                      v        |
+                    |  +--------+----------------------------------+
+                    |  |        fault_detector                     |
+                    |  |  (result_a vs result_b compare)          |
+                    |  +------------------------------------------+
 ```
+
+**说明**: 当 `ENABLE_LOCKSTEP=1` 时，双核锁步结构启用，Core A 和 Core B 执行相同运算，
+fault_detector 比较两者结果以检测故障。
 
 ### 2.2 模块划分
 
-| 模块 | 功能 | 安全要求 |
-|------|------|----------|
-| `aes_controller` | 控制状态机、寄存器接口 | ASIL-D |
-| `aes_core` | AES 轮运算核心 | ASIL-D |
-| `key_manager` | 密钥存储、掩码管理 | ASIL-D |
-| `key_schedule` | 密钥扩展 ( masked ) | ASIL-D |
-| `sbox_masked` | 掩码 S-Box (TI方案) | ASIL-D |
-| `mode_controller` | 模式控制 (含CTS) | ASIL-B |
-| `fault_detector` | 故障检测逻辑 | ASIL-D |
-| `crc_checker` | 数据完整性检查 | ASIL-B |
+| 模块 | 功能 | 安全要求 | 可配置性 |
+|------|------|----------|----------|
+| `aes_controller` | 控制状态机、寄存器接口 | ASIL-D | 固定 |
+| `aes_core` × 2 | AES 轮运算核心 (主核+锁步核) | ASIL-D | `ENABLE_LOCKSTEP` 参数控制条件实例化 |
+| `key_manager` | 密钥存储、掩码管理 | ASIL-D | 固定 |
+| `key_schedule` | 密钥扩展 ( masked ) | ASIL-D | 固定 |
+| `sbox_masked` | 掩码 S-Box (TI方案) | ASIL-D | 固定 |
+| `mode_controller` | 模式控制 (含CTS) | ASIL-B | 固定 |
+| `fault_detector` | 故障检测逻辑 (双核结果比较) | ASIL-D | `ENABLE_LOCKSTEP` 参数控制条件实例化 |
+| `crc_checker` | 数据完整性检查 | ASIL-B | 固定 |
+
+**可配置性说明**:
+- `ENABLE_LOCKSTEP=0`: 单核模式，仅实例化 Core A，无 fault_detector，适用于非车规场景
+- `ENABLE_LOCKSTEP=1`: 双核锁步模式，实例化 Core A + Core B + fault_detector，满足 ASIL-D 要求
 
 ## 3. 算法实现
 
@@ -196,19 +199,23 @@ Process:
 
 ### 6.2 配置寄存器 (APB)
 
-| 地址 | 寄存器 | 描述 |
-|------|--------|------|
-| 0x00 | CTRL | 启动/模式选择 |
-| 0x04 | STATUS | 状态/错误 |
-| 0x08 | KEY_LEN | 密钥长度 |
-| 0x0C | MODE | ECB/CBC/CTR/GCM/XTS |
-| 0x10-0x1C | KEY_0-3 | 密钥 (128-bit) |
-| 0x20-0x2C | KEY_4-7 | 密钥扩展 (256-bit) |
-| 0x30-0x3C | IV_0-3 | 初始化向量 |
-| 0x40 | CTS_EN | CTS 使能 |
-| 0x44 | SECTOR_ID | XTS Sector ID |
+| 地址 | 寄存器 | 描述 | 位定义 |
+|------|--------|------|--------|
+| 0x00 | CTRL | 控制寄存器 | [9] DUAL_RAIL_EN - 双核锁步使能<br>[8:1] MODE - 模式选择<br>[0] START - 启动 |
+| 0x04 | STATUS | 状态寄存器 | [4] FAULT_DETECTED - 故障检测标志<br>[3:1] STATE - 状态机状态<br>[0] BUSY - 忙标志 |
+| 0x08 | KEY_LEN | 密钥长度 | 密钥长度配置 |
+| 0x0C | MODE | 加密模式 | ECB/CBC/CTR/GCM/XTS |
+| 0x10-0x1C | KEY_0-3 | 密钥 (128-bit) | 密钥低128位 |
+| 0x20-0x2C | KEY_4-7 | 密钥扩展 (256-bit) | 密钥扩展位 |
+| 0x30-0x3C | IV_0-3 | 初始化向量 | 初始化向量 |
+| 0x40 | CTS_EN | CTS 使能 | 密文窃取使能 |
+| 0x44 | SECTOR_ID | XTS Sector ID | XTS扇区ID |
+| 0x48 | INT_EN | 中断使能 | [2] FAULT_INT_EN - 故障中断使能<br>[1] DONE_INT_EN - 完成中断使能<br>[0] ERROR_INT_EN - 错误中断使能 |
+| 0x4C | INT_STATUS | 中断状态 | [2] FAULT_STATUS - 故障中断状态<br>[1] DONE_STATUS - 完成中断状态<br>[0] ERROR_STATUS - 错误中断状态 |
 
 ## 7. 性能指标
+
+### 7.1 基础性能指标
 
 | 指标 | 目标 | 备注 |
 |------|------|------|
@@ -218,18 +225,52 @@ Process:
 | 功耗 | <10mW @ 100MHz | 典型工况 |
 | 安全等级 | 1st-order DPA resistant | TVLA passing |
 
+### 7.2 Lockstep 模式性能对比
+
+| 模式 | 吞吐率 | 延迟 | 面积 | 功耗 |
+|------|--------|------|------|------|
+| 单核 (ENABLE_LOCKSTEP=0) | >1 Gbps | 11 cycles | ~35K gates | 基准 |
+| 双核禁用 (DUAL_RAIL_EN=0) | >1 Gbps | 11 cycles | ~50K gates | 基准+漏电 |
+| 双核启用 (DUAL_RAIL_EN=1) | >1 Gbps | 11 cycles | ~50K gates | 2×动态功耗 |
+
+**说明**:
+- 吞吐率和延迟在各模式下保持一致，锁步机制不引入额外性能开销
+- 面积差异主要来自 Core B 和 fault_detector 的实例化
+- 功耗差异:
+  - 单核模式: 仅 Core A 运行，面积和功耗最优
+  - 双核禁用模式: Core B 实例化但不运行，存在漏电功耗
+  - 双核启用模式: 双核同时运行，动态功耗翻倍
+
 ## 8. 功能安全
 
 ### 8.1 FMEDA
 
-| 安全机制 | DC | 备注 |
-|----------|-----|------|
-| Dual-core lockstep | 99% | AES Core |
-| CRC-32 数据检查 | 99% | 输入/输出 |
-| Watchdog | 90% | 超时检测 |
-| Parity 检查 | 90% | 寄存器 |
+| 安全机制 | DC | 可配置性 | 备注 |
+|----------|-----|----------|------|
+| Dual-core lockstep | 99% | `ENABLE_LOCKSTEP` 参数 | 编译时/运行时可控 |
+| CRC-32 数据检查 | 99% | 固定启用 | 输入/输出完整性校验 |
+| Watchdog | 90% | 固定启用 | 超时检测 |
+| Parity 检查 | 90% | 固定启用 | 寄存器完整性检查 |
 
-### 8.2 Safety Goals
+### 8.2 可配置安全策略
+
+```
+ASIL-D 合规模式:  ENABLE_LOCKSTEP=1, DUAL_RAIL_EN=1
+                  (双核运行，故障检测启用，完全满足ASIL-D要求)
+
+功耗优化模式:     ENABLE_LOCKSTEP=1, DUAL_RAIL_EN=0
+                  (双核实例化但仅单核运行，降低动态功耗，快速切换能力)
+
+基础模式:         ENABLE_LOCKSTEP=0
+                  (无冗余，非车规，面积最小化)
+```
+
+**策略说明**:
+- ASIL-D 合规模式: 用于生产环境，提供最高安全等级
+- 功耗优化模式: 适用于低功耗场景，保持双核结构可快速恢复冗余
+- 基础模式: 适用于开发验证或非安全关键应用
+
+### 8.3 Safety Goals
 
 | ID | 描述 | ASIL |
 |----|------|------|
@@ -261,3 +302,4 @@ Process:
 | 版本 | 日期 | 变更 | 作者 |
 |------|------|------|------|
 | v0.1 | 2026-03-31 | 初始版本 | System Architect |
+| v1.1 | 2026-04-01 | 新增双核锁步架构: <br> - 更新顶层架构图 (双核锁步) <br> - 更新寄存器映射 (DUAL_RAIL_EN, FAULT 相关位) <br> - 更新模块划分表 (条件实例化说明) <br> - 更新功能安全章节 (可配置安全策略) <br> - 更新性能指标 (Lockstep 模式对比) | Design Agent |
