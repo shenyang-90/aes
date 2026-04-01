@@ -124,3 +124,22 @@ help:
 	@echo "  make TEST=tc_gcm_basic sim"
 	@echo "  make regression"
 	@echo "  make lint"
+	@echo "  make verilator-coverage  - Run Verilator coverage collection"
+	@echo "  make verilator-report    - Generate Verilator coverage report"
+
+#==============================================================================
+# Verilator Coverage Support
+#==============================================================================
+VERILATOR_DIR = ../../Temp/Verilator
+
+verilator-coverage:
+	@echo "Running Verilator coverage collection..."
+	$(MAKE) -f Makefile.verilator run_all
+
+verilator-report:
+	@echo "Generating Verilator coverage report..."
+	$(MAKE) -f Makefile.verilator report
+
+verilator-clean:
+	@echo "Cleaning Verilator build..."
+	$(MAKE) -f Makefile.verilator clean
