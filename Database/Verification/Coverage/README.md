@@ -1,50 +1,42 @@
-# Coverage Directory
+# Coverage Scripts
 
-覆盖率数据收集和报告生成目录。
+覆盖率数据收集和报告生成脚本。
 
-## 目录结构
+## 脚本说明
 
-```
-Coverage/
-├── data/          # 原始覆盖率数据 (运行时生成)
-├── html/          # HTML覆盖率报告 (运行时生成)
-├── scripts/       # 覆盖率收集脚本
-│   ├── collect_coverage.sh
-│   └── generate_report.py
-└── README.md      # 本文档
-```
+| 脚本 | 用途 |
+|------|------|
+| `collect_coverage.sh` | 收集覆盖率数据 |
+| `generate_report.py` | 生成HTML覆盖率报告 |
+
+## 输出目录
+
+覆盖率数据生成到项目级目录：
+
+| 输出类型 | 目录 |
+|----------|------|
+| 覆盖率数据 | `Temp/Coverage/data/` |
+| HTML报告 | `Temp/Coverage/html/` |
+| 文本报告 | `ProjectMgmt/Reviews/IDR/` |
 
 ## 使用方法
 
-### Icarus Verilog覆盖率
+### 通过Makefile
 ```bash
 make coverage
-# 或
+```
+
+### 直接运行脚本
+```bash
 ./scripts/collect_coverage.sh
 ```
 
-### Verilator覆盖率
-```bash
-make verilator-cov
-make verilator-report
-```
-
-## 生成文件说明
-
-| 文件类型 | 位置 | 说明 |
-|----------|------|------|
-| 原始数据 | data/*.txt, data/*.db | 覆盖率原始数据 |
-| HTML报告 | html/*.html | 可视化覆盖率报告 |
-| 日志 | logs/*.log | 仿真日志 |
-
-**注意**: 生成文件不应提交到Git，已添加到.gitignore。
-
 ## 覆盖率目标
 
-| 指标 | 目标 | 状态 |
-|------|------|------|
-| Line Coverage | >90% | ✅ 92.5% |
-| Condition Coverage | >90% | ✅ 91.2% |
-| Toggle Coverage | >85% | ✅ 87.3% |
-| FSM Coverage | >95% | ✅ 97.8% |
-| Assertion Coverage | >95% | ✅ 96.2% |
+| 指标 | 目标 | 实际 | 状态 |
+|------|------|------|------|
+| Line Coverage | >90% | 92.5% | ✅ |
+| Condition Coverage | >90% | 91.2% | ✅ |
+| Toggle Coverage | >85% | 87.3% | ✅ |
+| FSM Coverage | >95% | 97.8% | ✅ |
+| Assertion Coverage | >95% | 96.2% | ✅ |

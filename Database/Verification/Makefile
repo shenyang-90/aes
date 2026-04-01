@@ -71,14 +71,11 @@ all: sim
 clean:
 	@echo "Cleaning generated files..."
 	@rm -rf ../../Temp/VCS/*
+	@rm -rf ../../Temp/Coverage/*
+	@rm -rf ../../Temp/Verilator/coverage/*
 	@rm -f transcript
-	@rm -f Coverage/data/*.txt Coverage/data/*.db
-	@rm -f Coverage/html/*.html Coverage/html/*.css
-	@find Regression/reports -type f ! -name "README.md" -delete
-	@find Testcases -name "*.out" -delete
-	@find Testcases -name "*.vvp" -delete
-	@find . -name "*.vcd" -delete 2>/dev/null
 	@echo "  ✓ Clean complete"
+	@echo "Note: Generated files in Temp/ directory cleaned"
 
 regression:
 	./Regression/scripts/run_regression.sh

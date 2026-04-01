@@ -10,9 +10,10 @@ set -e
 # Directories
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VERIF_DIR="$(dirname $(dirname $SCRIPT_DIR))"
-RTL_DIR="$VERIF_DIR/../RTL"
-OUT_DIR="$VERIF_DIR/../../Temp/Coverage"
-REPORT_DIR="$VERIF_DIR/../Regression/reports"
+PROJECT_DIR="$VERIF_DIR/../.."
+RTL_DIR="$PROJECT_DIR/Database/RTL"
+OUT_DIR="$PROJECT_DIR/Temp/Coverage"
+REPORT_DIR="$PROJECT_DIR/ProjectMgmt/Reviews/IDR"
 
 # Create directories
 mkdir -p $OUT_DIR

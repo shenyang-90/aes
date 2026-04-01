@@ -7,10 +7,12 @@
 set -e
 
 # Configuration
-RTL_DIR="../../Database/RTL"
-TC_DIR="../../Database/Verification/Testcases/directed"
-OUT_DIR="./coverage_runs_$(date +%Y%m%d_%H%M%S)"
-COV_MERGE_DIR="$OUT_DIR/merged"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$SCRIPT_DIR/../../../.."
+RTL_DIR="$PROJECT_DIR/Database/RTL"
+TC_DIR="$PROJECT_DIR/Database/Verification/Testcases/directed"
+OUT_DIR="$PROJECT_DIR/Temp/Coverage/$(date +%Y%m%d_%H%M%S)"
+COV_MERGE_DIR="$PROJECT_DIR/Temp/Coverage/merged"
 
 # Testcases to run
 TESTCASES=(

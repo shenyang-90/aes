@@ -4,9 +4,11 @@
 # Description: Parses coverage data and generates summary report
 #============================================================================
 
-REPORT_DIR="./reports"
-COV_DIR="./coverage"
-LOG_DIR="./logs"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$SCRIPT_DIR/../../../.."
+REPORT_DIR="$PROJECT_DIR/ProjectMgmt/Reviews/IDR"
+COV_DIR="$PROJECT_DIR/Temp/Verilator/coverage"
+LOG_DIR="$PROJECT_DIR/Temp/Verilator/logs"
 
 mkdir -p $REPORT_DIR
 
