@@ -17,13 +17,54 @@ NC='\033[0m' # No Color
 # Create directories
 mkdir -p "$REPORT_DIR" "$OUT_DIR"
 
-# Test list
+# Test list - Full regression (32 testcases)
 TESTS=(
+    # Smoke
     "tc_smoke"
+    # Register & Interrupt
+    "tc_register_full"
+    "tc_interrupt_all"
+    # ECB Mode
     "tc_ecb_nist"
+    "tc_ecb_multiblock"
+    "tc_mode_coverage"
+    # CBC Mode
     "tc_cbc_nist"
+    "tc_cbc_decrypt"
+    # CTR Mode
     "tc_ctr_nist"
+    "tc_ctr_counter"
+    # Multi-Block
+    "tc_cbc_multiblock"
+    "tc_ctr_multiblock"
+    # GCM Mode
+    "tc_gcm_basic"
+    # XTS Mode
+    "tc_xts_basic"
+    # CTS Mode
     "tc_cts_boundary"
+    # Key Length (simplified - main tests only)
+    "tc_key_length"
+    "tc_key_len_check"
+    "tc_key_len_error"
+    "tc_key_single"
+    # Key Schedule
+    "tc_key_schedule_simple"
+    # S-Box
+    "tc_sbox_masked"
+    # Error Handling
+    "tc_error_handling"
+    "tc_error_injection"
+    # Fault Injection
+    "tc_fault_inject"
+    "tc_fault_data_corr"
+    # Core/Direct
+    "tc_aes_core_direct"
+    "tc_aes128_only"
+    # Coverage Maximization (IDR新增)
+    "tc_toggle_coverage"
+    "tc_corner_cases"
+    "tc_reset_error_coverage"
 )
 
 # Counters

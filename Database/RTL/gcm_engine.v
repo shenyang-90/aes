@@ -17,6 +17,10 @@ module gcm_engine (
     // Hash subkey H = E(K, 0^128)
     input  wire [127:0] hash_subkey_h,
     
+    // J0 = E(K, IV || 0^31 || 1) for tag finalization
+    input  wire [127:0] j0_data,
+    input  wire         j0_valid,
+    
     // AAD interface
     input  wire [127:0] aad_data,
     input  wire         aad_valid,
@@ -33,7 +37,12 @@ module gcm_engine (
     
     // Tag output
     output reg  [127:0] tag,
-    output reg          tag_valid
+    output reg          tag_valid,
+    
+    // Tag verification (for decryption)
+    input  wire [127:0] tag_in,
+    input  wire         tag_verify,
+    output reg          tag_mismatch
 );
 
     //========================================================================
@@ -66,20 +75,32 @@ module gcm_engine (
     //========================================================================
     // GHASH State Machine
     //========================================================================
-    localparam [2:0] IDLE = 3'd0, INIT = 3'd1, AAD = 3'd2, CT = 3'd3, LEN = 3'd4, TAG = 3'd5;
-    reg [2:0] state;
-    reg [127:0] y;  // Accumulator
+    localparam [3:0] IDLE      = 4'd0;
+    localparam [3:0] INIT      = 4'd1;
+    localparam [3:0] AAD       = 4'd2;
+    localparam [3:0] CT        = 4'd3;
+    localparam [3:0] LEN       = 4'd4;
+    localparam [3:0] TAG_WAIT  = 4'd5;  // Wait for J0
+    localparam [3:0] TAG_FINAL = 4'd6;  // Finalize tag
+    localparam [3:0] VERIFY    = 4'd7;  // Verify tag for decryption
+    
+    reg [3:0] state;
+    reg [127:0] y;  // GHASH Accumulator
+    reg [127:0] y_len;  // Y value after length block
     
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             state <= IDLE;
             y <= 128'd0;
+            y_len <= 128'd0;
             tag <= 128'd0;
             tag_valid <= 1'b0;
+            tag_mismatch <= 1'b0;
         end else begin
             case (state)
                 IDLE: begin
                     tag_valid <= 1'b0;
+                    tag_mismatch <= 1'b0;
                     if (gcm_start && gcm_en) begin
                         state <= INIT;
                         y <= 128'd0;
@@ -109,17 +130,37 @@ module gcm_engine (
                 end
                 
                 LEN: begin
-                    // Add length block
-                    y <= gf_mul(y ^ {aad_len, ct_len}, hash_subkey_h);
-                    state <= TAG;
+                    // Add length block and store result
+                    y_len <= gf_mul(y ^ {aad_len, ct_len}, hash_subkey_h);
+                    state <= TAG_WAIT;
                 end
                 
-                TAG: begin
-                    tag <= y;
+                TAG_WAIT: begin
+                    // Wait for J0 (E(K, J0)) to be available
+                    if (j0_valid) begin
+                        state <= TAG_FINAL;
+                    end
+                end
+                
+                TAG_FINAL: begin
+                    // Final tag = GHASH result XOR E(K, J0)
+                    tag <= y_len ^ j0_data;
                     tag_valid <= 1'b1;
+                    if (tag_verify) begin
+                        state <= VERIFY;
+                    end else if (!gcm_start) begin
+                        state <= IDLE;
+                    end
+                end
+                
+                VERIFY: begin
+                    // Verify tag for decryption mode
+                    tag_mismatch <= (tag != tag_in);
                     if (!gcm_start)
                         state <= IDLE;
                 end
+                
+                default: state <= IDLE;
             endcase
         end
     end

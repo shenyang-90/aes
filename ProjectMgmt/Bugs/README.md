@@ -13,6 +13,12 @@
 | BUG-008 | Low | 🟢 FIXED | XTS tweak block_num simplification | Design Agent | 2026-03-31 |
 | BUG-009 | Low | 🟢 FIXED | GCM multi-block AAD/CT processing | Design Agent | 2026-03-31 |
 | BUG-010 | Low | 🟢 FIXED | CRC checker not using data_in | Design Agent | 2026-03-31 |
+| BUG-011 | HIGH | 🟢 FIXED | GCM tag generation incomplete | Design Agent | 2026-04-01 |
+| BUG-012 | HIGH | 🟢 FIXED | XTS multi-sector tweak incomplete | Design Agent | 2026-04-01 |
+| BUG-013 | MEDIUM | 🟢 FIXED | CTS decryption not implemented | Design Agent | 2026-04-01 |
+| BUG-014 | HIGH | 🟢 FIXED | INT_STAT register not functional | Design Agent | 2026-04-01 |
+| BUG-015 | MEDIUM | 🟢 FIXED | Key clear functionality missing | Design Agent | 2026-04-01 |
+| BUG-016 | MEDIUM | 🟢 FIXED | CRC checker not fully integrated | Design Agent | 2026-04-01 |
 
 ## Bug Status Legend
 
@@ -54,12 +60,20 @@ Found → Logged → Triage → Assigned → Fixed → Verified → Closed
 - [BUG-004.md](./BUG-004.md) - GCM 模式实现 🟡 PARTIAL
 - [BUG-005.md](./BUG-005.md) - XTS 模式 tweak 实现 🟡 PARTIAL
 
-### RTL 代码审查发现的问题
-- [BUG-006.md](./BUG-006.md) - sbox_masked placeholder 实现 🔴 OPEN
+### RTL 代码审查发现的问题 (已修复)
+- [BUG-006.md](./BUG-006.md) - sbox_masked placeholder 实现 🟢 FIXED
 - [BUG-007.md](./BUG-007.md) - 状态机命名不一致 🔴 OPEN
-- [BUG-008.md](./BUG-008.md) - XTS tweak block_num 简化 🔴 OPEN
-- [BUG-009.md](./BUG-009.md) - GCM 多块 AAD/CT 处理 🔴 OPEN
-- [BUG-010.md](./BUG-010.md) - CRC checker 未使用 data_in 🔴 OPEN
+- [BUG-008.md](./BUG-008.md) - XTS tweak block_num 简化 🟢 FIXED
+- [BUG-009.md](./BUG-009.md) - GCM 多块 AAD/CT 处理 🟢 FIXED
+- [BUG-010.md](./BUG-010.md) - CRC checker 未使用 data_in 🟢 FIXED
+
+### 功能覆盖率发现的问题 (已修复)
+- [BUG-011.md](./BUG-011.md) - GCM Tag 生成不完整 🟢 FIXED
+- [BUG-012.md](./BUG-012.md) - XTS 多Sector tweak 不完整 🟢 FIXED
+- [BUG-013.md](./BUG-013.md) - CTS 解密未实现 🟢 FIXED
+- [BUG-014.md](./BUG-014.md) - INT_STAT 寄存器不工作 🟢 FIXED
+- [BUG-015.md](./BUG-015.md) - Key 清除功能缺失 🟢 FIXED
+- [BUG-016.md](./BUG-016.md) - CRC 检查器未集成 🟢 FIXED
 
 ---
 

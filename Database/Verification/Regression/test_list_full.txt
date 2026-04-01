@@ -1,0 +1,104 @@
+# Full Regression Test List
+# Total: 30 testcases
+# Last Updated: 2026-04-01
+
+# ===========================================
+# 1. Smoke Test (1 test)
+# ===========================================
+Database/Verification/Testcases/directed/tc_smoke.sv
+
+# ===========================================
+# 2. Register & Interrupt Tests (2 tests)
+# ===========================================
+Database/Verification/Testcases/directed/tc_register_full.sv
+Database/Verification/Testcases/directed/tc_interrupt_all.sv
+
+# ===========================================
+# 3. ECB Mode Tests (3 tests)
+# ===========================================
+Database/Verification/Testcases/directed/tc_ecb_nist.sv
+Database/Verification/Testcases/directed/tc_ecb_multiblock.sv
+Database/Verification/Testcases/directed/tc_mode_coverage.sv
+
+# ===========================================
+# 3. CBC Mode Tests (2 tests)
+# ===========================================
+Database/Verification/Testcases/directed/tc_cbc_nist.sv
+Database/Verification/Testcases/directed/tc_cbc_decrypt.sv
+
+# ===========================================
+# 4. CTR Mode Tests (2 tests)
+# ===========================================
+Database/Verification/Testcases/directed/tc_ctr_nist.sv
+Database/Verification/Testcases/directed/tc_ctr_counter.sv
+
+# ===========================================
+# 5. Multi-Block Tests (2 tests)
+# ===========================================
+Database/Verification/Testcases/directed/tc_cbc_multiblock.sv
+Database/Verification/Testcases/directed/tc_ctr_multiblock.sv
+
+# ===========================================
+# 6. GCM Mode Tests (1 test)
+# ===========================================
+Database/Verification/Testcases/directed/tc_gcm_basic.sv
+
+# ===========================================
+# 6. XTS Mode Tests (1 test)
+# ===========================================
+Database/Verification/Testcases/directed/tc_xts_basic.sv
+
+# ===========================================
+# 7. CTS Mode Tests (1 test)
+# ===========================================
+Database/Verification/Testcases/directed/tc_cts_boundary.sv
+
+# ===========================================
+# 8. Key Length Tests (8 tests)
+# ===========================================
+Database/Verification/Testcases/directed/tc_key_length.sv
+Database/Verification/Testcases/directed/tc_key_len_check.sv
+Database/Verification/Testcases/directed/tc_key_len_error.sv
+Database/Verification/Testcases/directed/tc_key_single.sv
+Database/Verification/Testcases/directed/tc_key_length_192_0.sv
+Database/Verification/Testcases/directed/tc_key_length_192_1.sv
+Database/Verification/Testcases/directed/tc_key_length_192_2.sv
+Database/Verification/Testcases/directed/tc_key_length_256_0.sv
+Database/Verification/Testcases/directed/tc_key_length_256_1.sv
+Database/Verification/Testcases/directed/tc_key_length_256_2.sv
+
+# ===========================================
+# 9. Key Schedule Tests (2 tests)
+# ===========================================
+Database/Verification/Testcases/directed/tc_key_schedule_simple.sv
+Database/Verification/Testcases/directed/tc_key_schedule_timing.sv
+
+# ===========================================
+# 10. S-Box Tests (1 test)
+# ===========================================
+Database/Verification/Testcases/directed/tc_sbox_masked.sv
+
+# ===========================================
+# 11. Error Handling Tests (2 tests)
+# ===========================================
+Database/Verification/Testcases/directed/tc_error_handling.sv
+Database/Verification/Testcases/directed/tc_error_injection.sv
+
+# ===========================================
+# 12. Fault Injection Tests (2 tests)
+# ===========================================
+Database/Verification/Testcases/directed/tc_fault_inject.sv
+Database/Verification/Testcases/directed/tc_fault_data_corr.sv
+
+# ===========================================
+# 13. Core/Direct Tests (2 tests)
+# ===========================================
+Database/Verification/Testcases/directed/tc_aes_core_direct.sv
+Database/Verification/Testcases/directed/tc_aes128_only.sv
+
+# ===========================================
+# 14. Coverage Maximization Tests (3 tests)
+# ===========================================
+Database/Verification/Testcases/directed/tc_toggle_coverage.sv
+Database/Verification/Testcases/directed/tc_corner_cases.sv
+Database/Verification/Testcases/directed/tc_reset_error_coverage.sv

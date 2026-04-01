@@ -18,9 +18,12 @@ REPORT_DIR="$VERIF_DIR/../Regression/reports"
 mkdir -p $OUT_DIR
 mkdir -p $REPORT_DIR
 
-# Test list
+# Test list - 28 testcases (core + coverage)
 TESTS=(
+    # Core tests
     "tc_smoke"
+    "tc_register_full"
+    "tc_interrupt_all"
     "tc_ecb_nist"
     "tc_cbc_nist"
     "tc_cbc_decrypt"
@@ -41,6 +44,13 @@ TESTS=(
     "tc_sbox_masked"
     "tc_ecb_multiblock"
     "tc_key_len_error"
+    # Multi-Block
+    "tc_cbc_multiblock"
+    "tc_ctr_multiblock"
+    # Coverage maximization tests (IDR新增)
+    "tc_toggle_coverage"
+    "tc_corner_cases"
+    "tc_reset_error_coverage"
 )
 
 # Colors
