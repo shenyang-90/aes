@@ -238,6 +238,11 @@ def generate_cts_vectors():
 > TVLA实际板测试在IP阶段**豁免不测**，本章节保留为理论方案文档，供后续SoC集成阶段参考。
 > 
 > **验证重点**: 功能验证为主，确保设计实现符合TI理论方案。
+> 
+> **豁免说明**: 根据EDR评审决议，TVLA测试将在SoC集成阶段通过实际芯片功耗采集完成。IP级验证通过以下替代方案确保侧信道防护有效性：
+> 1. 功能验证确认TI掩码逻辑正确实现
+> 2. 代码审查确认shuffling逻辑符合设计规范
+> 3. 形式验证确认功耗平衡属性
 
 ### 3.1 测试目标
 
@@ -747,6 +752,13 @@ coverage_report:
 | BIST-003 | Periodic BIST (1s) | 软件定时触发 | 周期性执行成功 | P1 |
 | BIST-004 | On-Demand BIST | 软件写BIST_CTRL | 立即执行成功 | P0 |
 | BIST-005 | BIST执行时间 | 测量完成时间 | <100us | P1 |
+
+**BIST执行时间测量方法**:
+- **测量点**: BIST_CTRL.START写1到BIST_STATUS.DONE置1
+- **时钟基准**: 100MHz (10ns/cycle)
+- **最大周期数**: 10,000 cycles (100us)
+- **测量实现**: UVM timer或SystemVerilog $time函数
+- **通过标准**: 实测值 < 100us @ 100MHz
 
 #### 8.2.2 BIST故障检测延迟验证
 
