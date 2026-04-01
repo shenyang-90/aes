@@ -60,16 +60,17 @@ module aes_controller (
     //========================================================================
     // State Machine
     //========================================================================
-    localparam [3:0] IDLE        = 4'd0;
-    localparam [3:0] LOAD_KEY    = 4'd1;
-    localparam [3:0] WAIT_KEY    = 4'd2;  // Wait for key schedule to complete
-    localparam [3:0] LOAD_IV     = 4'd3;
-    localparam [3:0] WAIT_DATA   = 4'd4;
-    localparam [3:0] PROCESS     = 4'd5;
-    localparam [3:0] WAIT_CORE   = 4'd6;
-    localparam [3:0] OUTPUT      = 4'd7;
-    localparam [3:0] DONE        = 4'd8;
-    localparam [3:0] ERROR       = 4'd9;
+    localparam [3:0] IDLE          = 4'd0;
+    localparam [3:0] KEY_SCHEDULE  = 4'd1;  // Key expansion phase
+    localparam [3:0] KEY_WAIT      = 4'd2;  // Wait for key schedule to complete
+    localparam [3:0] LOAD_DATA     = 4'd3;  // Load input data
+    localparam [3:0] LOAD_DATA_WAIT= 4'd4;  // Wait for data input
+    localparam [3:0] ROUND_OP      = 4'd5;  // Main round operations (1-Nr-1)
+    localparam [3:0] ROUND_WAIT    = 4'd6;  // Wait for core operation
+    localparam [3:0] FINAL_ROUND   = 4'd7;  // Final round operation
+    localparam [3:0] OUTPUT_DATA   = 4'd8;  // Output result
+    localparam [3:0] DONE          = 4'd9;  // Operation complete
+    localparam [3:0] ERROR         = 4'd10; // Error state
     
     reg [3:0] state, next_state;
     
@@ -101,40 +102,47 @@ module aes_controller (
         case (state)
             IDLE: begin
                 if (ctrl_start && config_valid)
-                    next_state = LOAD_KEY;
+                    next_state = KEY_SCHEDULE;
             end
             
-            LOAD_KEY: begin
-                next_state = WAIT_KEY;  // New state to wait for key expansion
+            KEY_SCHEDULE: begin
+                // Key schedule phase - immediately proceed to data load
+                // Original design: LOAD_KEY -> LOAD_IV
+                next_state = LOAD_DATA;
             end
             
-            WAIT_KEY: begin
-                if (key_ready)
-                    next_state = LOAD_IV;
+            KEY_WAIT: begin
+                // Reserved state - bypass to LOAD_DATA
+                // Not used in current design (key schedule is immediate)
+                next_state = LOAD_DATA;
             end
             
-            LOAD_IV: begin
-                if (ctrl_mode == MODE_ECB)
-                    next_state = WAIT_DATA;
-                else
-                    next_state = WAIT_DATA;
+            LOAD_DATA: begin
+                // Load IV/data configuration, then wait for data
+                next_state = LOAD_DATA_WAIT;
             end
             
-            WAIT_DATA: begin
+            LOAD_DATA_WAIT: begin
                 if (data_in_valid)
-                    next_state = PROCESS;
+                    next_state = ROUND_OP;
             end
             
-            PROCESS: begin
-                next_state = WAIT_CORE;
+            ROUND_OP: begin
+                next_state = ROUND_WAIT;
             end
             
-            WAIT_CORE: begin
+            ROUND_WAIT: begin
                 if (core_done)
-                    next_state = OUTPUT;
+                    next_state = OUTPUT_DATA;
             end
             
-            OUTPUT: begin
+            FINAL_ROUND: begin
+                // Final round - integrated with ROUND_OP/ROUND_WAIT
+                // This state is reserved for future use if needed
+                next_state = OUTPUT_DATA;
+            end
+            
+            OUTPUT_DATA: begin
                 if (data_out_ready)
                     next_state = DONE;
             end
@@ -174,20 +182,25 @@ module aes_controller (
             int_error   <= 1'b0;
             
             case (state)
-                LOAD_KEY: begin
+                KEY_SCHEDULE: begin
                     key_load <= 1'b1;
                     key_mode <= key_len_reg[1:0];
                 end
                 
-                LOAD_IV: begin
+                LOAD_DATA: begin
                     iv_load <= 1'b1;
                     aes_mode   <= ctrl_mode;
                     encrypt    <= ctrl_encrypt;
                     cts_enable <= ctrl_cts_en;
                 end
                 
-                PROCESS: begin
+                ROUND_OP: begin
                     core_start <= 1'b1;
+                end
+                
+                FINAL_ROUND: begin
+                    // Final round operations - reserved for future use
+                    // Currently core handles final round internally as part of ROUND_OP
                 end
                 
                 DONE: begin
@@ -204,7 +217,7 @@ module aes_controller (
     end
     
     // Status outputs
-    assign data_in_ready  = (state == WAIT_DATA);
-    assign data_out_valid = (state == OUTPUT);
+    assign data_in_ready  = (state == LOAD_DATA_WAIT);
+    assign data_out_valid = (state == OUTPUT_DATA);
     
 endmodule

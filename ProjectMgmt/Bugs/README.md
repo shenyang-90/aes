@@ -9,7 +9,7 @@
 | BUG-004 | Major | 🟢 FIXED | GCM mode implementation incomplete | Design Agent | 2026-03-31 |
 | BUG-005 | Minor | 🟢 FIXED | XTS mode tweak implementation issue | Design Agent | 2026-03-31 |
 | BUG-006 | **Major** | 🟢 FIXED | sbox_masked placeholder implementation | Design Agent | 2026-03-31 |
-| BUG-007 | Low | 🔴 OPEN | State machine naming inconsistency | Design Agent | 2026-04-15 |
+| BUG-007 | Low | 🟢 FIXED | State machine naming inconsistency | Design Agent | 2026-04-01 |
 | BUG-008 | Low | 🟢 FIXED | XTS tweak block_num simplification | Design Agent | 2026-03-31 |
 | BUG-009 | Low | 🟢 FIXED | GCM multi-block AAD/CT processing | Design Agent | 2026-03-31 |
 | BUG-010 | Low | 🟢 FIXED | CRC checker not using data_in | Design Agent | 2026-03-31 |

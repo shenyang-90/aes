@@ -292,4 +292,150 @@ module aes_safety_assertions (
 
 endmodule
 
+//----------------------------------------------------------------------------
+// 8. GCM Tag Generation Assertions (AS21)
+//----------------------------------------------------------------------------
+module gcm_tag_assertions (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire [127:0] tag,
+    input  wire        tag_valid,
+    input  wire        gcm_done,
+    input  wire        gcm_start
+);
+
+    // AS21: GCM tag valid after tag generation
+    property p_gcm_tag_valid_after_gen;
+        @(posedge clk)
+        disable iff (!rst_n)
+        gcm_start |-> ##[1:50] (tag_valid && (tag != 128'd0));
+    endproperty
+    assert property (p_gcm_tag_valid_after_gen) else
+        $error("AS21: GCM tag not valid after tag generation");
+
+endmodule
+
+//----------------------------------------------------------------------------
+// 9. XTS Sector Increment Assertions (AS22)
+//----------------------------------------------------------------------------
+module xts_sector_assertions (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire [127:0] sector_id,
+    input  wire [31:0]  block_num,
+    input  wire        sector_inc,
+    input  wire [127:0] tweak,
+    input  wire        done
+);
+
+    // AS22: XTS sector increment correctness
+    property p_xts_sector_increment;
+        @(posedge clk)
+        disable iff (!rst_n)
+        sector_inc |=> ##[1:5] ($past(tweak) != tweak);
+    endproperty
+    assert property (p_xts_sector_increment) else
+        $error("AS22: XTS tweak did not change after sector increment");
+
+endmodule
+
+//----------------------------------------------------------------------------
+// 10. CTS Decrypt Output Valid Assertions (AS23)
+//----------------------------------------------------------------------------
+module cts_decrypt_assertions (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire        decrypt,
+    input  wire        enable,
+    input  wire        done,
+    input  wire [127:0] data_out,
+    input  wire [6:0]  valid_bits
+);
+
+    // AS23: CTS decrypt output valid
+    property p_cts_decrypt_output_valid;
+        @(posedge clk)
+        disable iff (!rst_n)
+        (enable && decrypt && done) |-> !$isunknown(data_out);
+    endproperty
+    assert property (p_cts_decrypt_output_valid) else
+        $error("AS23: CTS decrypt output has X values");
+
+endmodule
+
+//----------------------------------------------------------------------------
+// 11. Key Clear Operation Assertions (AS24)
+//----------------------------------------------------------------------------
+module key_clear_assertions (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire        key_clear,
+    input  wire [255:0] key_reg,
+    input  wire        zeroize
+);
+
+    // AS24: Key clear operation correctness
+    property p_key_clear_operation;
+        @(posedge clk)
+        disable iff (!rst_n)
+        key_clear |=> ##[1:3] (key_reg == 256'd0);
+    endproperty
+    assert property (p_key_clear_operation) else
+        $error("AS24: Key clear operation failed - key not zeroized");
+
+endmodule
+
+//----------------------------------------------------------------------------
+// 12. CRC Error Detection Assertions (AS25)
+//----------------------------------------------------------------------------
+module crc_error_assertions (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire        crc_en,
+    input  wire        crc_error,
+    input  wire        int_error
+);
+
+    // AS25: CRC error detection triggers interrupt
+    property p_crc_error_detection;
+        @(posedge clk)
+        disable iff (!rst_n)
+        (crc_en && crc_error) |-> ##[1:3] int_error;
+    endproperty
+    assert property (p_crc_error_detection) else
+        $error("AS25: CRC error not detected or interrupt not generated");
+
+endmodule
+
+//----------------------------------------------------------------------------
+// 13. INT_STAT Update Assertions (AS26)
+//----------------------------------------------------------------------------
+module int_stat_assertions (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire        int_done_set,
+    input  wire        int_error_set,
+    input  wire [31:0] int_status_reg,
+    input  wire [31:0] int_en_reg
+);
+
+    // AS26: INT_STAT update correctness
+    property p_int_stat_done_update;
+        @(posedge clk)
+        disable iff (!rst_n)
+        (int_done_set && int_en_reg[0]) |=> (int_status_reg[0] == 1'b1);
+    endproperty
+    assert property (p_int_stat_done_update) else
+        $error("AS26: INT_STAT[0] not set when done interrupt triggered");
+
+    property p_int_stat_error_update;
+        @(posedge clk)
+        disable iff (!rst_n)
+        (int_error_set && int_en_reg[1]) |=> (int_status_reg[1] == 1'b1);
+    endproperty
+    assert property (p_int_stat_error_update) else
+        $error("AS26: INT_STAT[1] not set when error interrupt triggered");
+
+endmodule
+
 `endif // AES_ASSERTIONS_SV
