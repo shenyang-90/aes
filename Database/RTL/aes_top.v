@@ -3,10 +3,14 @@
 // Description: AES IP Top Level - integrates all sub-modules
 // Features: ECB/CBC/CTR/GCM/XTS/CTS modes, 128/192/256-bit keys
 // Security: TI masked S-Box, fault detection, lockstep
+// Safety: Configurable Dual-Rail Compare (Lockstep)
 //============================================================================
 `timescale 1ns / 1ps
 
-module aes_top (
+module aes_top #(
+    parameter ENABLE_LOCKSTEP = 1,      // 1=Enable dual-core lockstep, 0=Single core mode
+    parameter LOCKSTEP_MODE   = 0       // 0=Real-time compare, 1=Delayed compare (reserved)
+)(
     // Clock and Reset
     input  wire        clk,
     input  wire        rst_n,
@@ -36,6 +40,7 @@ module aes_top (
     // Interrupts
     output wire         int_done,
     output wire         int_error,
+    output wire         int_fault,       // NEW: Fault detection interrupt
     
     // DFT (for production)
     input  wire         scan_en,
@@ -80,17 +85,30 @@ module aes_top (
     reg [31:0]  int_en_reg;
     reg [31:0]  int_status_reg;
     
+    // DUAL_RAIL_EN control (CTRL[9])
+    wire dual_rail_en = ctrl_reg[9];
+    
+    // Busy signal for mode switching protection
+    wire ctrl_busy = status_reg[1];
+    
     //========================================================================
     // APB Interface
     //========================================================================
     wire apb_write = psel && penable && pwrite;
     wire apb_read  = psel && penable && !pwrite;
     
-    // Interrupt status signals (connected from controller)
-    wire int_done_set  = int_done;
-    wire int_error_set = int_error;
-    wire int_fault_set = 1'b0;  // No fault detector in current design
-    wire int_dma_set   = 1'b0;  // No DMA in current design
+    // Interrupt status signals
+    wire int_done_set;
+    wire int_error_set;
+    wire int_fault_set;
+    wire int_crc_set;
+    
+    // DFT test mode bypass for lockstep
+    wire test_mode = scan_en;  // In test mode, bypass lockstep
+    wire dual_rail_effective = test_mode ? 1'b0 : dual_rail_en;
+    
+    // Combined done signal (set in generate block)
+    wire core_done_combined;
     
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -109,24 +127,32 @@ module aes_top (
             pready <= psel && penable;
             pslverr <= 1'b0;  // No errors
             
-            // Update INT_STATUS: set by events, clear by W1C or read-clear
-            // Set bits when interrupt conditions occur (only if enabled)
+            // Update INT_STATUS: set by events, clear by W1C
             if (int_done_set)
                 int_status_reg[0] <= 1'b1;
             if (int_error_set)
                 int_status_reg[1] <= 1'b1;
             if (int_fault_set)
                 int_status_reg[2] <= 1'b1;
-            if (int_dma_set)
+            if (int_crc_set)
                 int_status_reg[3] <= 1'b1;
             
-            // BUG-015: Key clear functionality
-            // Check for key_clear bit (CTRL[9]) - clears all key registers
-            if (apb_write && paddr == REG_CTRL && pwdata[9]) begin
+            // Key clear functionality (CTRL[10] - key clear bit)
+            if (apb_write && paddr == REG_CTRL && pwdata[10]) begin
                 key_reg <= 256'd0;  // Zeroize keys
             end else if (apb_write) begin
                 case (paddr)
-                    REG_CTRL:       ctrl_reg       <= pwdata;
+                    REG_CTRL: begin
+                        // DUAL_RAIL_EN (bit 9) can only be changed when not busy
+                        if (ctrl_busy) begin
+                            // Only allow changes to non-DUAL_RAIL_EN bits
+                            ctrl_reg[31:10] <= pwdata[31:10];
+                            ctrl_reg[8:0]   <= pwdata[8:0];
+                            // Keep bit 9 unchanged when busy
+                        end else begin
+                            ctrl_reg <= pwdata;
+                        end
+                    end
                     REG_KEY_LEN:    key_len_reg    <= pwdata;
                     REG_MODE:       mode_reg       <= pwdata;
                     REG_KEY_0:      key_reg[255:224] <= pwdata;
@@ -149,6 +175,10 @@ module aes_top (
             end else if (apb_read && paddr == REG_INT_STATUS) begin
                 // Read-Clear (RC) behavior: clear all bits on read
                 int_status_reg <= 32'd0;
+            end else begin
+                // Auto-clear START bit after operation completes
+                if (core_done_combined)
+                    ctrl_reg[0] <= 1'b0;
             end
         end
     end
@@ -189,13 +219,13 @@ module aes_top (
     
     // Controller
     wire        core_start;
-    wire        core_done;
     wire        key_load;
     wire        iv_load;
     wire [2:0]  aes_mode;
     wire [1:0]  key_mode;
     wire        encrypt;
     wire        cts_enable;
+    wire        m_axis_tvalid_ctrl;
     
     aes_controller u_controller (
         .clk            (clk),
@@ -208,25 +238,35 @@ module aes_top (
         .data_in_valid  (s_axis_tvalid),
         .data_in_ready  (s_axis_tready),
         .data_out_ready (m_axis_tready),
-        .data_out_valid (m_axis_tvalid),
+        .data_out_valid (m_axis_tvalid_ctrl),
         .core_start     (core_start),
-        .core_done      (core_done),
+        .core_done      (core_done_combined),
         .key_load       (key_load),
         .iv_load        (iv_load),
-        .key_ready      (u_key_schedule.keys_valid),  // Wait for key schedule
+        .key_ready      (u_key_schedule.key_valid),
         .aes_mode       (aes_mode),
         .key_mode       (key_mode),
         .encrypt        (encrypt),
         .cts_enable     (cts_enable),
-        .int_done       (int_done),
-        .int_error      (int_error)
+        .int_done       (int_done_set),
+        .int_error      (int_error_set)
     );
     
     // Key Schedule
     wire [127:0] round_key;
     wire         key_valid;
-    wire         core_key_req;
+    wire         core_key_req_a;
+    wire         core_key_req_b;
+    wire [3:0]   core_round_num_a;
+    wire [3:0]   core_round_num_b;
+    
+    // Combine key requests from both cores (when lockstep enabled)
+    wire         core_key_req = ENABLE_LOCKSTEP ? (core_key_req_a | core_key_req_b) : core_key_req_a;
     wire [3:0]   core_round_num;
+    
+    assign core_round_num = ENABLE_LOCKSTEP ? 
+                            (core_key_req_a ? core_round_num_a : core_round_num_b) : 
+                            core_round_num_a;
     
     key_schedule u_key_schedule (
         .clk        (clk),
@@ -240,76 +280,201 @@ module aes_top (
         .key_valid  (key_valid)
     );
     
-    // AES Core
-    wire [127:0] core_data_out;
+    //========================================================================
+    // Dual-Core Lockstep Implementation (Configurable)
+    //========================================================================
     
-    aes_core u_core (
+    // Core A - Primary execution (always present)
+    wire [127:0] core_data_out_a;
+    wire         core_done_a;
+    
+    aes_core u_core_a (
         .clk        (clk),
         .rst_n      (rst_n),
         .start      (core_start),
-        .done       (core_done),
+        .done       (core_done_a),
         .encrypt    (encrypt),
         .key_len    (key_mode),
         .mode       (aes_mode),
         .data_in    (s_axis_tdata),
-        .data_out   (core_data_out),
+        .data_out   (core_data_out_a),
         .iv         (iv_reg),
         .round_key  (round_key),
-        .round_num  (core_round_num),
-        .key_req    (core_key_req)
+        .round_num  (core_round_num_a),
+        .key_req    (core_key_req_a)
     );
     
-    // BUG-016: CRC Checker Integration
+    //========================================================================
+    // Lockstep Generate Block
+    //========================================================================
+    
+    // Signals from lockstep logic
+    wire        core_done_b;
+    wire [127:0] core_data_out_b;
+    wire        fault_detected;
+    wire [127:0] fault_safe_result;
     wire [31:0] crc_out;
     wire        crc_valid;
-    reg         crc_error;      // CRC mismatch detected
-    wire        crc_en;         // CRC enable from mode_reg
     
-    assign crc_en = mode_reg[8];  // CRC enable bit in MODE register
+    generate
+        if (ENABLE_LOCKSTEP) begin : gen_lockstep
+            
+            // Core B clock gating control
+            // Core B clock is gated when dual_rail_effective=0
+            reg core_b_clk_en;
+            
+            always @(posedge clk or negedge rst_n) begin
+                if (!rst_n) begin
+                    core_b_clk_en <= 1'b0;
+                end else begin
+                    if (dual_rail_effective && core_start)
+                        core_b_clk_en <= 1'b1;
+                    else if (!dual_rail_effective && core_done_b)
+                        core_b_clk_en <= 1'b0;
+                end
+            end
+            
+            // Core B clock (gated)
+            wire core_b_clk = clk & core_b_clk_en;
+            
+            // Core B - Redundant execution (lockstep)
+            aes_core u_core_b (
+                .clk        (core_b_clk),
+                .rst_n      (rst_n),
+                .start      (core_start & dual_rail_effective),
+                .done       (core_done_b),
+                .encrypt    (encrypt),
+                .key_len    (key_mode),
+                .mode       (aes_mode),
+                .data_in    (s_axis_tdata),
+                .data_out   (core_data_out_b),
+                .iv         (iv_reg),
+                .round_key  (round_key),
+                .round_num  (core_round_num_b),
+                .key_req    (core_key_req_b)
+            );
+            
+            // Combined done signal (both cores must complete when dual-rail enabled)
+            wire core_done_both = dual_rail_effective ? (core_done_a & core_done_b) : core_done_a;
+            assign core_done_combined = core_done_both;
+            
+            // CRC Checker
+            wire crc_en = mode_reg[8];
+            
+            crc_checker u_crc_checker (
+                .clk        (clk),
+                .rst_n      (rst_n),
+                .calc_start (core_done_both & crc_en),
+                .calc_done  (),
+                .data_in    (core_data_out_a),
+                .crc_out    (crc_out),
+                .crc_valid  (crc_valid)
+            );
+            
+            // Fault Detector
+            wire fault_type;
+            
+            fault_detector u_fault_detector (
+                .clk              (clk),
+                .rst_n            (rst_n),
+                .enable           (dual_rail_effective),
+                .op_start         (core_start),
+                .op_done          (core_done_both),
+                .result_a         (core_data_out_a),
+                .result_b         (core_data_out_b),
+                .result_a_valid   (core_done_a),
+                .result_b_valid   (core_done_b),
+                .crc_value        (crc_out),
+                .crc_valid        (crc_valid),
+                .fault_detected   (fault_detected),
+                .fault_type       (fault_type),
+                .safe_result      (fault_safe_result)
+            );
+            
+        end else begin : gen_no_lockstep
+            
+            // No lockstep - tie off signals
+            assign core_done_b = 1'b0;
+            assign core_data_out_b = 128'd0;
+            assign core_done_combined = core_done_a;
+            assign fault_detected = 1'b0;
+            assign fault_safe_result = core_data_out_a;
+            assign crc_out = 32'd0;
+            assign crc_valid = 1'b0;
+            
+        end
+    endgenerate
     
-    crc_checker u_crc_checker (
-        .clk        (clk),
-        .rst_n      (rst_n),
-        .calc_start (core_done & crc_en),  // Start CRC calc when data is ready
-        .calc_done  (crc_valid),
-        .data_in    (core_data_out),
-        .crc_out    (crc_out),
-        .crc_valid  (crc_valid)
-    );
-    
-    // CRC error detection - compare calculated CRC with expected
-    // Expected CRC is stored in upper 32 bits of output data
+    // CRC error detection
+    reg crc_error_reg;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            crc_error <= 1'b0;
-        end else if (crc_valid && crc_en) begin
-            // CRC error if calculated CRC doesn't match expected
-            // For now, just set error flag when CRC is calculated (test mode)
-            crc_error <= 1'b0;  // Placeholder - actual compare would need expected CRC
+            crc_error_reg <= 1'b0;
+        end else begin
+            crc_error_reg <= 1'b0;  // Placeholder
         end
     end
     
-    // Update status_reg with CRC error (bit 3)
+    //========================================================================
+    // Status Register Update
+    //========================================================================
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             status_reg <= 32'd0;
         end else begin
-            status_reg[3] <= crc_error;  // CRC_MISMATCH status
-            status_reg[0] <= core_done;  // Operation done
-            status_reg[1] <= 1'b0;       // Error placeholder
-            status_reg[2] <= 1'b0;       // Fault placeholder
+            status_reg[0] <= core_done_combined && !fault_detected;  // DONE only if no fault
+            status_reg[1] <= ctrl_reg[0] || core_start;  // BUSY
+            status_reg[2] <= crc_error_reg;  // CRC_ERR
+            status_reg[3] <= 1'b0;  // Reserved
+            status_reg[4] <= fault_detected;  // FAULT_DETECTED (bit 4)
+            status_reg[5] <= 1'b0;  // TIMEOUT_ERR
+            status_reg[6] <= 1'b0;  // PARITY_ERR
+            status_reg[7] <= 1'b0;  // KEY_ERR
+            status_reg[9] <= dual_rail_en;  // DUAL_RAIL_EN status
         end
     end
     
-    // Output assignment
+    //========================================================================
+    // Safe Output Selection Logic
+    //========================================================================
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             m_axis_tdata  <= 128'd0;
             m_axis_tlast  <= 1'b0;
-        end else if (core_done) begin
-            m_axis_tdata <= core_data_out;
+            m_axis_tvalid <= 1'b0;
+        end else if (core_done_combined) begin
+            if (fault_detected) begin
+                // Fault detected: output zero and deassert valid
+                m_axis_tdata  <= 128'd0;
+                m_axis_tvalid <= 1'b0;
+            end else begin
+                // No fault: output safe result
+                if (ENABLE_LOCKSTEP && dual_rail_effective) begin
+                    m_axis_tdata <= fault_safe_result;
+                end else begin
+                    m_axis_tdata <= core_data_out_a;
+                end
+                m_axis_tvalid <= 1'b1;
+            end
             m_axis_tlast <= s_axis_tlast;
+        end else begin
+            m_axis_tvalid <= 1'b0;
         end
     end
+    
+    //========================================================================
+    // Interrupt Generation
+    //========================================================================
+    
+    // Internal interrupt set signals
+    assign int_done_set  = core_done_combined && !fault_detected;
+    assign int_error_set = 1'b0;  // Placeholder
+    assign int_fault_set = fault_detected;
+    assign int_crc_set   = crc_error_reg;
+    
+    // Interrupt outputs (masked by enable bits)
+    assign int_done  = int_done_set  && int_en_reg[0];
+    assign int_error = int_error_set && int_en_reg[1];
+    assign int_fault = fault_detected && int_en_reg[2];
     
 endmodule
