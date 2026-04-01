@@ -1,0 +1,39 @@
+# AES IP Verification - Git Ignore
+
+# Generated coverage data
+Coverage/data/*.txt
+Coverage/data/*.db
+Coverage/html/*.html
+Coverage/html/*.css
+
+# Regression reports (generated)
+Regression/reports/*.txt
+Regression/reports/*.log
+Regression/reports/*.xml
+!Regression/reports/README.md
+
+# Compiled output
+*.out
+*.o
+*.vvp
+*.vcd
+*.fst
+
+# Verilator generated
+obj_dir/
+*.d
+*.a
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

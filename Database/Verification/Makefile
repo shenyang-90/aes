@@ -69,8 +69,16 @@ endif
 all: sim
 
 clean:
-	rm -rf ../../Temp/VCS/*
-	rm -f transcript
+	@echo "Cleaning generated files..."
+	@rm -rf ../../Temp/VCS/*
+	@rm -f transcript
+	@rm -f Coverage/data/*.txt Coverage/data/*.db
+	@rm -f Coverage/html/*.html Coverage/html/*.css
+	@find Regression/reports -type f ! -name "README.md" -delete
+	@find Testcases -name "*.out" -delete
+	@find Testcases -name "*.vvp" -delete
+	@find . -name "*.vcd" -delete 2>/dev/null
+	@echo "  ✓ Clean complete"
 
 regression:
 	./Regression/scripts/run_regression.sh
@@ -111,13 +119,17 @@ help:
 	@echo "  tc_reset_error_coverage - Reset and FSM state coverage"
 	@echo ""
 	@echo "Targets:"
-	@echo "  compile     - Compile testbench"
-	@echo "  sim         - Run simulation (default: tc_smoke)"
-	@echo "  view        - Open waveform viewer"
-	@echo "  lint        - Run lint check on all RTL"
-	@echo "  regression  - Run full regression"
-	@echo "  list-tests  - Show all available tests"
-	@echo "  clean       - Clean output files"
+	@echo "  compile          - Compile testbench"
+	@echo "  sim              - Run simulation (default: tc_smoke)"
+	@echo "  view             - Open waveform viewer"
+	@echo "  lint             - Run lint check on all RTL"
+	@echo "  regression       - Run full regression (32 tests)"
+	@echo "  coverage         - Run coverage collection"
+	@echo "  verilator-cov    - Run Verilator coverage"
+	@echo "  verilator-report - Generate Verilator coverage report"
+	@echo "  list-tests       - Show all available tests"
+	@echo "  clean            - Clean all generated files"
+	@echo "  help             - Show this help message"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make TEST=tc_smoke sim"
