@@ -2,6 +2,7 @@
 // Module: key_manager
 // Description: AES key management - key registers and protection
 //============================================================================
+`timescale 1ns / 1ps
 
 module key_manager (
     input  wire        clk,

@@ -1,0 +1,35 @@
+# Simulation outputs (all in Temp/)
+Temp/
+*.vcd
+*.fst
+*.fsdb
+*.vpd
+
+# Compilation outputs
+obj_dir/
+*.o
+*.out
+simv
+simv.daidir/
+csrc/
+Database/Verification/out/
+
+# Logs
+*.log
+transcript
+nwaveLog/
+
+# Coverage
+*.ucdb
+coverage/
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

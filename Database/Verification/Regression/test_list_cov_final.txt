@@ -1,0 +1,24 @@
+# Final Coverage Push Test List
+# Target: >90% line coverage, >85% condition, >82% toggle
+
+# Existing tests
+Database/Verification/Testcases/directed/tc_sanity_check.sv
+Database/Verification/Testcases/directed/tc_mode_coverage.sv
+Database/Verification/Testcases/directed/tc_key_len_check.sv
+Database/Verification/Testcases/directed/tc_error_injection.sv
+Database/Verification/Testcases/directed/tc_sbox_masked.sv
+Database/Verification/Testcases/directed/tc_ecb_multiblock.sv
+Database/Verification/Testcases/directed/tc_key_len_error.sv
+Database/Verification/Testcases/directed/tc_fault_data_corr.sv
+
+# New coverage tests (3 additional tests)
+Database/Verification/Testcases/directed/tc_toggle_coverage.sv
+Database/Verification/Testcases/directed/tc_corner_cases.sv
+Database/Verification/Testcases/directed/tc_reset_error_coverage.sv
+
+# Random testcases for Verilator coverage (5 tests - TASK-AES-VER-001)
+Database/Verification/Testcases/directed/tc_random_modes.sv
+Database/Verification/Testcases/directed/tc_random_keys.sv
+Database/Verification/Testcases/directed/tc_random_data.sv
+Database/Verification/Testcases/directed/tc_random_errors.sv
+Database/Verification/Testcases/directed/tc_stress_random.sv

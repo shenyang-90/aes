@@ -1,32 +1,32 @@
-# Temp - EDA工具临时文件
+# Temp Directory
 
-此目录用于存放EDA工具生成的临时文件，**不提交到Git仓库**。
+This directory contains all EDA tool temporary files and simulation outputs.
 
-## 子目录说明
+**IMPORTANT:** This directory is .gitignore'd and should NOT be committed to the repository.
 
-| 目录 | 用途 |
-|------|------|
-| VCS/ | VCS编译输出 |
-| Verdi/ | Verdi调试文件 |
-| Spyglass/ | Spyglass检查临时文件 |
-| DesignCompiler/ | DC综合临时文件 |
-| Innovus/ | Innovus布局布线临时文件 |
-| ICC2/ | ICC2布局布线临时文件 |
-| PrimeTime/ | PT时序分析临时文件 |
-| Calibre/ | Calibre物理验证临时文件 |
-| Tessent/ | DFT工具临时文件 |
-| Others/ | 其他临时文件 |
+## Structure
 
-## 清理命令
+| Directory | Purpose |
+|-----------|---------|
+| VCS/ | VCS/Xcelium simulation outputs, VCD files, logs |
+| Verdi/ | Verdi debug database, waveforms |
+| Spyglass/ | Spyglass Lint/CDC reports |
+| Coverage/ | Coverage data and HTML reports |
+| Others/ | Other tool temporary files |
+
+## Generated Files
+
+- `*.vcd` - Value Change Dump (waveform files)
+- `*.log` - Simulation logs
+- `simv` - Compiled simulation executable
+- Coverage database files
+
+## Cleanup
+
+To clean all temporary files:
 
 ```bash
-# 清理所有临时文件
-make clean
-
-# 或手动清理
-rm -rf Temp/*
+make clean          # From Database/Verification/
+# or
+rm -rf Temp/VCS/* Temp/Coverage/*
 ```
-
----
-
-**注意**: 此目录已在 .gitignore 中配置，不会提交到版本控制。

@@ -2,6 +2,7 @@
 // Module: axi4_stream_if
 // Description: AXI4-Stream Interface for AES IP data flow
 //============================================================================
+`timescale 1ns / 1ps
 
 module axi4_stream_if (
     input  wire        clk,

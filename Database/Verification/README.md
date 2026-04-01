@@ -1,44 +1,184 @@
-# Verification - 验证环境
+# IP Verification Environment
 
-此目录包含验证环境、用例、报告。
+通用验证环境模板，支持 Icarus Verilog 和 Verilator 仿真。
 
-## 子目录
-
-| 目录 | 用途 |
-|------|------|
-| [Env](./Env/) | UVM环境 |
-| [Testcases](./Testcases/) | 测试用例 |
-| [Coverage](./Coverage/) | 覆盖率数据 |
-| [Regression](./Regression/) | 回归测试 |
+---
 
 ## 目录结构
 
 ```
-Env/
-├── tb/                # Testbench
-│   ├── top_tb.sv
-│   ├── env/
-│   ├── agent/
-│   ├── scoreboard/
-│   └── coverage/
-└── tests/             # 测试用例
-    ├── smoke/
-    ├── directed/
-    └── random/
+Database/Verification/
+├── Makefile                   # 主Makefile (Icarus Verilog)
+├── Makefile.verilator         # Verilator专用Makefile
+├── README.md                  # 本文档
+│
+├── Scripts/                   # 验证脚本
+│   ├── run_regression.sh
+│   ├── run_coverage.sh
+│   ├── verilator_collect_coverage.sh
+│   └── verilator_generate_report.sh
+│
+├── Env/                       # 验证环境
+│   ├── sva/                   # SystemVerilog断言
+│   ├── tb/                    # Testbench
+│   ├── tvla/                  # TVLA测试计划
+│   ├── uvm/                   # UVM框架 (可选)
+│   └── verilator/             # Verilator仿真主程序
+│
+├── Regression/                # 回归测试列表
+│   └── test_list_full.txt
+│
+└── Testcases/                 # 测试用例
+    ├── directed/              # 定向测试
+    ├── random/                # 随机测试
+    └── vectors/               # 测试向量
 ```
 
-## 运行命令
+**输出目录**:
+- `Temp/VCS/` - 仿真输出
+- `Temp/Coverage/` - 覆盖率数据
+- `Temp/Verilator/` - Verilator编译输出
+- `ProjectMgmt/Reviews/IDR/` - 评审报告
+
+---
+
+## 快速启动
+
+### 运行单个测试
+```bash
+cd Database/Verification
+make TEST=tc_smoke sim
+```
+
+### 运行回归测试
+```bash
+make regression
+```
+
+### 运行覆盖率收集
+```bash
+# Icarus Verilog
+make coverage
+
+# Verilator
+make verilator-cov
+make verilator-report
+```
+
+### 清理生成文件
+```bash
+make clean
+```
+
+---
+
+## 可用命令
+
+| 命令 | 说明 |
+|------|------|
+| `make TEST=<test> sim` | 运行单个测试 |
+| `make regression` | 运行完整回归测试 |
+| `make coverage` | 收集覆盖率 (Icarus) |
+| `make verilator-cov` | Verilator覆盖率收集 |
+| `make verilator-report` | 生成Verilator报告 |
+| `make lint` | RTL Lint检查 |
+| `make list-tests` | 列出所有测试 |
+| `make clean` | 清理生成文件 |
+| `make help` | 显示帮助信息 |
+
+---
+
+## 仿真工具
+
+### Icarus Verilog (默认)
+```bash
+# 编译并运行
+make TEST=tc_smoke compile
+make TEST=tc_smoke sim
+
+# 查看波形
+gtkwave Temp/VCS/tc_smoke.vcd
+```
+
+### Verilator (覆盖率)
+```bash
+# 编译并运行所有测试
+make -f Makefile.verilator run_all
+
+# 合并覆盖率
+make -f Makefile.verilator merge_cov
+
+# 生成报告
+make -f Makefile.verilator report
+```
+
+---
+
+## 覆盖率收集
+
+### 支持的覆盖率类型
+
+| 类型 | 说明 | 工具支持 |
+|------|------|---------|
+| Line Coverage | 行覆盖率 | Icarus, Verilator |
+| Condition Coverage | 条件覆盖率 | Icarus, Verilator |
+| Toggle Coverage | 翻转覆盖率 | Verilator |
+| FSM Coverage | 状态机覆盖率 | Verilator |
+| Functional Coverage | 功能覆盖率 | Verilator + Covergroup |
+| Assertion Coverage | 断言覆盖率 | Icarus, Verilator |
+
+### 运行覆盖率流程
 
 ```bash
-# 编译
-make comp
+# 1. 运行测试收集覆盖率数据
+make verilator-cov
 
-# 运行单个测试
-make run TEST=smoke_test
+# 2. 生成HTML报告
+make verilator-report
 
-# 回归测试
-make regression
-
-# 查看覆盖率
-make cov
+# 报告位置: ProjectMgmt/Reviews/IDR/
 ```
+
+---
+
+## 脚本说明
+
+### Scripts/
+
+| 脚本 | 用途 |
+|------|------|
+| `run_regression.sh` | 运行完整回归测试 |
+| `run_coverage.sh` | Icarus覆盖率收集 |
+| `verilator_collect_coverage.sh` | Verilator覆盖率收集 |
+| `verilator_generate_report.sh` | Verilator报告生成 |
+
+---
+
+## 添加新测试用例
+
+1. 在 `Testcases/directed/` 创建 `tc_<name>.sv`
+2. 在 `TESTCASE_INDEX.md` 中记录测试信息
+3. 添加到 `Regression/test_list_full.txt`
+4. 运行回归测试验证
+
+### 文件命名规范
+- 测试用例: `tc_<name>.sv`
+- 脚本: `<action>_<target>.sh`
+- 文档: `README.md`
+
+---
+
+## 环境要求
+
+- **Icarus Verilog** >= 10.3
+- **Verilator** >= 5.0 (覆盖率功能)
+- **gtkwave** (波形查看)
+- **lcov/genhtml** (覆盖率报告生成，可选)
+
+---
+
+## 相关文档
+
+- `Testcases/directed/TESTCASE_INDEX.md` - 测试用例详细索引
+- `Env/uvm/README.md` - UVM环境文档 (如使用UVM)
+- `ProjectMgmt/Reviews/IDR/` - 项目评审报告和验证状态

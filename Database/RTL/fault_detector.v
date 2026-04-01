@@ -2,6 +2,7 @@
 // Module: fault_detector
 // Description: Fault detection using dual execution comparison
 //============================================================================
+`timescale 1ns / 1ps
 
 module fault_detector (
     input  wire        clk,
