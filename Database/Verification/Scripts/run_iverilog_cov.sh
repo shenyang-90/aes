@@ -4,8 +4,10 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RTL_DIR="$SCRIPT_DIR/../../Database/RTL"
-OUT_DIR="$SCRIPT_DIR"
+VERIF_DIR="$(dirname $SCRIPT_DIR)"
+PROJECT_DIR="$VERIF_DIR/../.."
+RTL_DIR="$PROJECT_DIR/Database/RTL"
+OUT_DIR="$PROJECT_DIR/Temp/Coverage"
 
 echo "========================================"
 echo "Icarus Verilog Coverage Collection"

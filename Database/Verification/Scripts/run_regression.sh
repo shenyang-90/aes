@@ -4,8 +4,8 @@
 #============================================================================
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-TB_DIR=$(dirname "$SCRIPT_DIR")
-PROJECT_DIR="$TB_DIR/../../.."
+VERIF_DIR=$(dirname "$SCRIPT_DIR")
+PROJECT_DIR="$VERIF_DIR/../.."
 REPORT_DIR="$PROJECT_DIR/ProjectMgmt/Reviews/IDR"
 OUT_DIR="$PROJECT_DIR/Temp/VCS"
 

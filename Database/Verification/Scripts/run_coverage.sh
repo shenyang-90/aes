@@ -9,7 +9,7 @@ set -e
 
 # Directories
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VERIF_DIR="$(dirname $(dirname $SCRIPT_DIR))"
+VERIF_DIR="$(dirname $SCRIPT_DIR)"
 PROJECT_DIR="$VERIF_DIR/../.."
 RTL_DIR="$PROJECT_DIR/Database/RTL"
 OUT_DIR="$PROJECT_DIR/Temp/Coverage"

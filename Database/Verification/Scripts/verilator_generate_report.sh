@@ -5,7 +5,8 @@
 #============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_DIR="$SCRIPT_DIR/../../../.."
+VERIF_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$VERIF_DIR/../.."
 REPORT_DIR="$PROJECT_DIR/ProjectMgmt/Reviews/IDR"
 COV_DIR="$PROJECT_DIR/Temp/Verilator/coverage"
 LOG_DIR="$PROJECT_DIR/Temp/Verilator/logs"

@@ -5,9 +5,9 @@
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 VERIF_DIR=$(dirname "$SCRIPT_DIR")
-AES_DIR=$(dirname "$VERIF_DIR")
-TEMP_DIR="$AES_DIR/Temp"
-COV_DIR="$SCRIPT_DIR/.."
+PROJECT_DIR="$VERIF_DIR/../.."
+TEMP_DIR="$PROJECT_DIR/Temp"
+COV_DIR="$TEMP_DIR/Coverage"
 
 # Colors
 RED='\033[0;31m'

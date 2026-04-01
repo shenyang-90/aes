@@ -1,7 +1,6 @@
-# AES IP Verification Environment
+# IP Verification Environment
 
-**项目**: AES Crypto IP (ASIL-D Automotive Security)  
-**最后更新**: 2026-04-01
+通用验证环境模板，支持 Icarus Verilog 和 Verilator 仿真。
 
 ---
 
@@ -9,49 +8,83 @@
 
 ```
 Database/Verification/
-├── Coverage/                  # 覆盖率收集和分析
-│   ├── data/                  # 覆盖率数据
-│   ├── html/                  # HTML报告
-│   └── scripts/               # 覆盖率脚本
-├── Env/                       # 验证环境
-│   ├── sva/                   # SystemVerilog Assertions
-│   ├── tb/                    # Testbench
-│   ├── tvla/                  # TVLA分析
-│   └── uvm/                   # UVM环境
-├── Regression/                # 回归测试
-│   ├── reports/               # 回归报告
-│   └── scripts/               # 回归脚本
-├── Testcases/                 # 测试用例
-│   ├── directed/              # 定向测试 (42个)
-│   ├── random/                # 随机测试 (5个)
-│   └── vectors/               # 测试向量 (NIST)
 ├── Makefile                   # 主Makefile (Icarus Verilog)
-├── Makefile.verilator         # Verilator Makefile
-├── README_VERILATOR.md        # Verilator详细说明
-└── sim_main.cpp               # Verilator仿真主程序
+├── Makefile.verilator         # Verilator专用Makefile
+├── README.md                  # 本文档
+│
+├── Scripts/                   # 验证脚本
+│   ├── run_regression.sh
+│   ├── run_coverage.sh
+│   ├── verilator_collect_coverage.sh
+│   └── verilator_generate_report.sh
+│
+├── Env/                       # 验证环境
+│   ├── sva/                   # SystemVerilog断言
+│   ├── tb/                    # Testbench
+│   ├── tvla/                  # TVLA测试计划
+│   ├── uvm/                   # UVM框架 (可选)
+│   └── verilator/             # Verilator仿真主程序
+│
+├── Regression/                # 回归测试列表
+│   └── test_list_full.txt
+│
+└── Testcases/                 # 测试用例
+    ├── directed/              # 定向测试
+    ├── random/                # 随机测试
+    └── vectors/               # 测试向量
+```
+
+**输出目录**:
+- `Temp/VCS/` - 仿真输出
+- `Temp/Coverage/` - 覆盖率数据
+- `Temp/Verilator/` - Verilator编译输出
+- `ProjectMgmt/Reviews/IDR/` - 评审报告
+
+---
+
+## 快速启动
+
+### 运行单个测试
+```bash
+cd Database/Verification
+make TEST=tc_smoke sim
+```
+
+### 运行回归测试
+```bash
+make regression
+```
+
+### 运行覆盖率收集
+```bash
+# Icarus Verilog
+make coverage
+
+# Verilator
+make verilator-cov
+make verilator-report
+```
+
+### 清理生成文件
+```bash
+make clean
 ```
 
 ---
 
-## 测试用例统计 (42个)
+## 可用命令
 
-| 类别 | 数量 | 说明 |
-|------|------|------|
-| Smoke & Sanity | 1 | tc_smoke |
-| ECB模式 | 3 | tc_ecb_nist, tc_ecb_multiblock, tc_mode_coverage |
-| CBC模式 | 3 | tc_cbc_nist, tc_cbc_decrypt, tc_cbc_multiblock |
-| CTR模式 | 3 | tc_ctr_nist, tc_ctr_counter, tc_ctr_multiblock |
-| GCM模式 | 1 | tc_gcm_basic |
-| XTS模式 | 1 | tc_xts_basic |
-| CTS模式 | 1 | tc_cts_boundary |
-| 密钥测试 | 10 | tc_key_length* (128/192/256) |
-| 密钥调度 | 2 | tc_key_schedule_* |
-| S-Box测试 | 1 | tc_sbox_masked |
-| 错误处理 | 3 | tc_error_handling, tc_error_injection |
-| 故障注入 | 2 | tc_fault_inject, tc_fault_data_corr |
-| 寄存器/中断 | 2 | tc_register_full, tc_interrupt_all |
-| 覆盖率测试 | 3 | tc_toggle_coverage, tc_corner_cases, tc_reset_error_coverage |
-| 随机测试 | 5 | tc_random_modes, tc_random_keys, tc_random_data, tc_random_errors, tc_stress_random |
+| 命令 | 说明 |
+|------|------|
+| `make TEST=<test> sim` | 运行单个测试 |
+| `make regression` | 运行完整回归测试 |
+| `make coverage` | 收集覆盖率 (Icarus) |
+| `make verilator-cov` | Verilator覆盖率收集 |
+| `make verilator-report` | 生成Verilator报告 |
+| `make lint` | RTL Lint检查 |
+| `make list-tests` | 列出所有测试 |
+| `make clean` | 清理生成文件 |
+| `make help` | 显示帮助信息 |
 
 ---
 
@@ -59,87 +92,93 @@ Database/Verification/
 
 ### Icarus Verilog (默认)
 ```bash
-# 编译并运行单个测试
+# 编译并运行
+make TEST=tc_smoke compile
 make TEST=tc_smoke sim
 
-# 运行回归测试
-make regression
-
-# Lint检查
-make lint
+# 查看波形
+gtkwave Temp/VCS/tc_smoke.vcd
 ```
 
 ### Verilator (覆盖率)
 ```bash
-# Verilator覆盖率收集
-make verilator-coverage
-
-# 生成覆盖率报告
-make verilator-report
-
-# 或直接调用
+# 编译并运行所有测试
 make -f Makefile.verilator run_all
+
+# 合并覆盖率
+make -f Makefile.verilator merge_cov
+
+# 生成报告
 make -f Makefile.verilator report
 ```
 
 ---
 
-## 覆盖率状态
+## 覆盖率收集
 
-| 指标 | 目标 | 实际 | 状态 |
-|------|------|------|------|
-| Line Coverage | >90% | 92.5% | ✅ |
-| Condition Coverage | >90% | 91.2% | ✅ |
-| Toggle Coverage | >85% | 87.3% | ✅ |
-| FSM Coverage | >95% | 97.8% | ✅ |
-| Functional Coverage | >90% | 96.2% | ✅ |
-| Assertion Coverage | >95% | 96.2% | ✅ |
+### 支持的覆盖率类型
 
-**所有覆盖率指标均已达标！**
+| 类型 | 说明 | 工具支持 |
+|------|------|---------|
+| Line Coverage | 行覆盖率 | Icarus, Verilator |
+| Condition Coverage | 条件覆盖率 | Icarus, Verilator |
+| Toggle Coverage | 翻转覆盖率 | Verilator |
+| FSM Coverage | 状态机覆盖率 | Verilator |
+| Functional Coverage | 功能覆盖率 | Verilator + Covergroup |
+| Assertion Coverage | 断言覆盖率 | Icarus, Verilator |
 
----
+### 运行覆盖率流程
 
-## SVA断言 (26个)
+```bash
+# 1. 运行测试收集覆盖率数据
+make verilator-cov
 
-位置: `Env/sva/aes_assertions.sv`
+# 2. 生成HTML报告
+make verilator-report
 
-| 编号 | 模块 | 描述 |
-|------|------|------|
-| AS1-AS3 | Key Manager | Key valid, clear, no X |
-| AS4-AS6 | S-Box | Output stable, shares correct |
-| AS7-AS8 | Mode Controller | Valid mode, no change during process |
-| AS9-AS10 | Encryption | Round count, done after rounds |
-| AS11-AS13 | GCM | Tag valid, stable, H not zero |
-| AS14-AS16 | XTS | Tweak sector/block unique, non-zero |
-| AS17-AS19 | Key Schedule | Round key valid, no X, sequence |
-| AS20 | Safety | Error to interrupt |
-| AS21 | GCM | Tag generation valid |
-| AS22 | XTS | Sector increment correct |
-| AS23 | CTS | Decrypt output valid |
-| AS24 | Key | Clear operation correct |
-| AS25 | CRC | Error detection |
-| AS26 | Interrupt | INT_STAT update correct |
+# 报告位置: ProjectMgmt/Reviews/IDR/
+```
 
 ---
 
-## 文档
+## 脚本说明
 
-| 文档 | 位置 | 说明 |
-|------|------|------|
-| Verification Plan | `Database/Docs/Verification/` | 验证计划 |
-| Coverage Report | `ProjectMgmt/Reviews/IDR/` | 覆盖率报告 |
-| Testcase Index | `Testcases/directed/TESTCASE_INDEX.md` | 测试用例索引 |
-| Verilator Guide | `README_VERILATOR.md` | Verilator使用说明 |
+### Scripts/
 
----
-
-## 相关链接
-
-- [IDR评审报告](../ProjectMgmt/Reviews/IDR/)
-- [Bug跟踪](../ProjectMgmt/Bugs/)
-- [RTL代码](../Database/RTL/)
+| 脚本 | 用途 |
+|------|------|
+| `run_regression.sh` | 运行完整回归测试 |
+| `run_coverage.sh` | Icarus覆盖率收集 |
+| `verilator_collect_coverage.sh` | Verilator覆盖率收集 |
+| `verilator_generate_report.sh` | Verilator报告生成 |
 
 ---
 
-**维护者**: Coding Yang / Verification Agent  
-**状态**: DDR Complete - 所有覆盖率指标达标
+## 添加新测试用例
+
+1. 在 `Testcases/directed/` 创建 `tc_<name>.sv`
+2. 在 `TESTCASE_INDEX.md` 中记录测试信息
+3. 添加到 `Regression/test_list_full.txt`
+4. 运行回归测试验证
+
+### 文件命名规范
+- 测试用例: `tc_<name>.sv`
+- 脚本: `<action>_<target>.sh`
+- 文档: `README.md`
+
+---
+
+## 环境要求
+
+- **Icarus Verilog** >= 10.3
+- **Verilator** >= 5.0 (覆盖率功能)
+- **gtkwave** (波形查看)
+- **lcov/genhtml** (覆盖率报告生成，可选)
+
+---
+
+## 相关文档
+
+- `Testcases/directed/TESTCASE_INDEX.md` - 测试用例详细索引
+- `Env/uvm/README.md` - UVM环境文档 (如使用UVM)
+- `ProjectMgmt/Reviews/IDR/` - 项目评审报告和验证状态

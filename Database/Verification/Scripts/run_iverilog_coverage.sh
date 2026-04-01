@@ -4,7 +4,12 @@
 # Description: Compiles and runs simulations to collect coverage metrics
 #============================================================================
 
-cd /home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Temp/Verilator
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VERIF_DIR="$(dirname $SCRIPT_DIR)"
+PROJECT_DIR="$VERIF_DIR/../.."
+
+# Change to output directory
+cd "$PROJECT_DIR/Temp/Verilator"
 
 # Directories
 RTL_DIR="../../Database/RTL"

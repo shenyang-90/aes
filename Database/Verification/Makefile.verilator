@@ -50,7 +50,7 @@ compile:
 	$(VERILATOR) $(VFLAGS) \
 		$(RTL_FILES) \
 		tb_coverage.sv \
-		sim_main.cpp \
+		Env/verilator/sim_main.cpp \
 		2>&1 | tee $(LOG_DIR)/compile.log
 	@echo "[COMPILE] Done"
 
@@ -101,7 +101,7 @@ run_all: setup
 		$(VERILATOR) $(VFLAGS) \
 			$(RTL_FILES) \
 			$(TC_DIR)/$$tc.sv \
-			sim_main.cpp \
+			Env/verilator/sim_main.cpp \
 			2>&1 | tee $(LOG_DIR)/$$tc.log; \
 		$(OUT_DIR)/obj_dir/Vtb_coverage 2>&1 | tee -a $(LOG_DIR)/$$tc.log; \
 		$(VERILATOR)_coverage --write-info $(COV_DIR)/$$tc.info \

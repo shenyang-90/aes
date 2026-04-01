@@ -7,10 +7,11 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-AES_DIR="$(dirname $(dirname $(dirname $(dirname $SCRIPT_DIR))))"
-RTL_DIR="$AES_DIR/Database/RTL"
-OUT_DIR="$AES_DIR/Temp/Verilator"
-REPORT_DIR="$AES_DIR/ProjectMgmt/Reviews"
+VERIF_DIR="$(dirname $SCRIPT_DIR)"
+PROJECT_DIR="$VERIF_DIR/../.."
+RTL_DIR="$PROJECT_DIR/Database/RTL"
+OUT_DIR="$PROJECT_DIR/Temp/Verilator"
+REPORT_DIR="$PROJECT_DIR/ProjectMgmt/Reviews"
 
 echo "========================================"
 echo "Verilator Coverage Setup"
@@ -361,7 +362,7 @@ all: compile run coverage
 compile:
 	@echo "Compiling with Verilator..."
 	verilator --cc --coverage-line --coverage-toggle --trace \
-		-Mdir obj_dir --exe sim_main.cpp \
+		-Mdir obj_dir --exe Env/verilator/sim_main.cpp \
 		-CFLAGS "-DVL_DEBUG" \
 		$(RTL_FILES) tb_coverage.sv 2>&1 | tee compile.log
 	make -C obj_dir -f Vtb_coverage.mk

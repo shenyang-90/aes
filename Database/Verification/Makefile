@@ -78,7 +78,7 @@ clean:
 	@echo "Note: Generated files in Temp/ directory cleaned"
 
 regression:
-	./Regression/scripts/run_regression.sh
+	./Scripts/run_regression.sh
 
 list-tests:
 	@echo "Available tests:"
@@ -133,7 +133,7 @@ help:
 	@echo "  make TEST=tc_gcm_basic sim"
 	@echo "  make regression"
 	@echo "  make lint"
-	@echo "  make verilator-coverage  - Run Verilator coverage collection"
+	@echo "  make verilator-cov       - Run Verilator coverage collection"
 	@echo "  make verilator-report    - Generate Verilator coverage report"
 
 #==============================================================================

@@ -8,7 +8,8 @@ set -e
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_DIR="$SCRIPT_DIR/../../../.."
+VERIF_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$VERIF_DIR/../.."
 RTL_DIR="$PROJECT_DIR/Database/RTL"
 TC_DIR="$PROJECT_DIR/Database/Verification/Testcases/directed"
 OUT_DIR="$PROJECT_DIR/Temp/Coverage/$(date +%Y%m%d_%H%M%S)"
@@ -47,7 +48,7 @@ run_testcase() {
     # Compile
     echo "[COMPILE] $tc_name"
     verilator --cc --coverage-line --coverage-toggle --coverage-branch \
-        --trace -Mdir $tc_out/obj_dir --exe sim_main.cpp \
+        --trace -Mdir $tc_out/obj_dir --exe Env/verilator/sim_main.cpp \
         -CFLAGS "-std=c++17 -O2" \
         $RTL_DIR/*.v $tc_file \
         > $tc_out/compile.log 2>&1
