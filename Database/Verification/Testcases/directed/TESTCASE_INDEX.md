@@ -17,7 +17,8 @@
 | Core/Direct | 2 | Core function |
 | 覆盖率提升 | 3 | Toggle >85% |
 | 寄存器/中断 | 4 | Full feature |
-| **总计** | **37** | **综合 >90%** |
+| **安全机制** | **5** | **SM-001~048** |
+| **总计** | **42** | **综合 >90%** |
 
 ---
 
@@ -633,6 +634,59 @@ cd ../../Temp/Verilator
 
 ---
 
+## Safety Mechanism Tests (新增 - 2026-04-01)
+
+基于FuSa安全机制信号分析，新增5个安全机制验证测试用例。
+
+### 测试用例列表
+
+| Testcase | Description | Coverage | Status |
+|----------|-------------|----------|--------|
+| tc_safety_dual_rail | Dual-rail mismatch detection | SM-001~010 | Planned |
+| tc_safety_crc_error | CRC error detection | SM-011~030 | Planned |
+| tc_safety_key_zeroize | Key zeroization verification | SM-031~040 | Planned |
+| tc_safety_fsm_timeout | FSM timeout detection | SM-041~048 | Planned |
+| tc_safety_interrupt | Interrupt reporting | SM-041~048 | Planned |
+
+### 详细说明
+
+#### tc_safety_dual_rail
+- **覆盖**: SM-001 ~ SM-010
+- **描述**: 验证双轨故障检测机制在result_a和result_b不匹配时触发fault_detected
+- **注入点**: result_a[0,7,15,31,63,95,127], result_b[0,63,127]
+- **检查点**: fault_detected assertion
+- **参考**: Safety_Mechanism_Signals.md 第3章
+
+#### tc_safety_crc_error
+- **覆盖**: SM-011 ~ SM-030
+- **描述**: 验证CRC校验器检测数据损坏并触发故障
+- **注入点**: data_in各位, crc_valid信号
+- **检查点**: crc_valid=0, INT_STATUS[2]
+- **参考**: Safety_Mechanism_Signals.md 第3章
+
+#### tc_safety_key_zeroize
+- **覆盖**: SM-031 ~ SM-040
+- **描述**: 验证密钥清零机制安全清除密钥
+- **注入点**: zeroize信号, APB密钥清除, key_in位
+- **检查点**: key_out=0, key_valid=0
+- **参考**: Safety_Mechanism_Signals.md 第3章
+
+#### tc_safety_fsm_timeout
+- **覆盖**: SM-041 ~ SM-048
+- **描述**: 验证FSM超时检测卡住状态
+- **注入点**: Force state到IDLE, KEY_WAIT, LOAD_DATA, ROUND_OP, OUTPUT_DATA
+- **检查点**: INT_STATUS[3], watchdog timeout
+- **参考**: Safety_Mechanism_Signals.md 第3章
+
+#### tc_safety_interrupt
+- **覆盖**: SM-041 ~ SM-048 (中断相关)
+- **描述**: 验证所有故障类型的中断生成和报告
+- **注入点**: 各种故障条件
+- **检查点**: int_fault, INT_STATUS寄存器
+- **参考**: Safety_Mechanism_Signals.md 第3章
+
+---
+
 ## 注意事项
 
 1. **AES-192/256**: 密钥长度相关测试用例需要RTL支持相应密钥长度
@@ -641,6 +695,7 @@ cd ../../Temp/Verilator
 4. **故障注入**: tc_fault_inject 为基础软件测试，硬件故障注入需FPGA/硅片验证
 5. **覆盖率测试**: IDR新增3个覆盖率提升测试用例，用于最大化toggle/condition/FSM覆盖
 6. **随机测试**: 新增5个随机测试用例，用于Verilator覆盖率收集和交叉覆盖验证
+7. **安全机制测试**: 新增5个安全机制测试用例，用于验证FuSa安全机制，参考Safety_Mechanism_Signals.md
 
 ---
 
