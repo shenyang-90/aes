@@ -4,13 +4,13 @@
 
 | 字段 | 值 |
 |------|-----|
-| **版本** | v1.0 |
-| **日期** | 2026-03-31 |
-| **作者** | AI-Yang Verification Agent |
-| **评审** | AI Yang (Quality Gatekeeper) |
-| **任务** | TASK-AES-VER-001 |
-| **ASIL** | ASIL-D |
-| **状态** | Ready for Review |
+| **版本** | **v1.1** |
+| **日期** | **2026-04-02** |
+| **作者** | **AI-Yang Verification Agent** |
+| **评审** | **AI Yang (Quality Gatekeeper)** |
+| **任务** | **TASK-AES-VER-002 / EDR Remediation Update** |
+| **ASIL** | **ASIL-D** |
+| **状态** | **Updated for Design Spec v1.1** |
 
 ## 文档控制
 
@@ -18,6 +18,7 @@
 |------|------|---------|------|
 | v0.1 | 2026-03-31 | 初始框架 | Verification Lead |
 | v1.0 | 2026-03-31 | 完整验证计划，含TVLA、故障注入、CTS边界验证 | AI-Yang Verification Agent |
+| **v1.1** | **2026-04-02** | **根据Design Spec v1.1 EDR修复更新：补充Lockstep/BIST测试、更新断言映射、完善安全机制验证** | **Verification Agent** |
 
 ## 1. 验证策略
 
@@ -708,38 +709,141 @@ coverage_report:
 | SM-047 | FSM invalid | state=4'd12 | Force invalid | Default→IDLE | P0 |
 | SM-048 | FSM invalid | state=4'd15 | Force invalid | Default→IDLE | P0 |
 
-### 8.2 Safety Mechanism Assertion Check
+#### 8.1.6 ERROR State Recovery测试 (新增)
 
-需要添加的SVA断言验证：
+基于Design Spec v1.1新增的ERROR状态和恢复流程：
 
-| ID | 断言描述 | 检查信号 | 触发条件 |
-|----|----------|----------|----------|
-| AS27 | Fault detected on mismatch | fault_detected | result_a≠result_b |
-| AS28 | CRC error triggers fault | INT_STATUS[2] | crc_valid=0 |
-| AS29 | Timeout triggers error | INT_STATUS[3] | state stuck |
-| AS30 | Key zeroize clears key | key_valid | zeroize=1 |
-| AS31 | FSM invalid state recovery | state | invalid→IDLE |
-| AS32 | Interrupt assertion check | int_fault | fault_detected=1 |
-| AS33 | Error state entry | state | fault_detected=1→ERROR |
-| AS34 | APB key clear trigger | key_clear | CTRL[9]=1 |
+| Test ID | 测试场景 | 触发条件 | 预期行为 | 优先级 |
+|---------|----------|----------|----------|--------|
+| SM-049 | ERROR状态进入 | fault_detected=1 | 状态→ERROR, 输出清零 | P0 |
+| SM-050 | ERROR状态进入 | CRC_ERR=1 | 状态→ERROR, 输出清零 | P0 |
+| SM-051 | ERROR状态进入 | TIMEOUT_ERR=1 | 状态→ERROR, 输出清零 | P0 |
+| SM-052 | ERROR状态保持 | 在ERROR状态 | 保持ERROR直到清零 | P0 |
+| SM-053 | ERROR状态退出 | 写STATUS[4]=1 | 状态→IDLE | P0 |
+| SM-054 | FAULT_DETECTED sticky | 故障后清零 | W1C行为正确 | P0 |
+| SM-055 | LOCKSTEP_ACTIVE状态 | DUAL_RAIL_EN=1 | STATUS[10]=1 | P1 |
+| SM-056 | LOCKSTEP_ACTIVE状态 | DUAL_RAIL_EN=0 | STATUS[10]=0 | P1 |
 
-### 8.3 Test Coverage Targets for Safety
+#### 8.1.7 Clock Delay Common Cause测试 (新增)
+
+基于Design Spec v1.1时钟延迟共因故障防护：
+
+| Test ID | 测试场景 | 注入方法 | 预期行为 | 优先级 |
+|---------|----------|----------|----------|--------|
+| CC-001 | 2-cycle延迟验证 | 测量result_a/b对齐 | 延迟=2 cycles | P0 |
+| CC-002 | Clock glitch检测 | 注入单cycle毛刺 | 延迟后Core A/B不同时采样 | P1 |
+| CC-003 | Clock edge skew | 模拟时钟抖动 | 容错范围>0.5 cycle | P1 |
+
+### 8.2 BIST验证计划 (新增)
+
+基于Design Spec v1.1 BIST触发策略和故障检测延迟分析：
+
+#### 8.2.1 BIST功能测试
+
+| Test ID | 测试场景 | 触发条件 | 检查点 | 优先级 |
+|---------|----------|----------|--------|--------|
+| BIST-001 | Power-On BIST | 上电自动触发 | BIST_DONE=1, BIST_PASS=1 | P0 |
+| BIST-002 | Periodic BIST (100ms) | 软件定时触发 | 周期性执行成功 | P0 |
+| BIST-003 | Periodic BIST (1s) | 软件定时触发 | 周期性执行成功 | P1 |
+| BIST-004 | On-Demand BIST | 软件写BIST_CTRL | 立即执行成功 | P0 |
+| BIST-005 | BIST执行时间 | 测量完成时间 | <100us | P1 |
+
+#### 8.2.2 BIST故障检测延迟验证
+
+| Test ID | 测试场景 | 周期设置 | 检测延迟要求 | 优先级 |
+|---------|----------|----------|--------------|--------|
+| BIST-006 | 故障在BIST前发生 | 100ms周期 | <200ms | P1 |
+| BIST-007 | 故障在BIST后发生 | 100ms周期 | <200ms | P1 |
+| BIST-008 | 最坏情况延迟 | 1s周期 | <2s | P1 |
+| BIST-009 | FTTI满足性 | 根据系统FTTI | 周期<FTTI/10 | P0 |
+
+#### 8.2.3 BIST各测试项验证
+
+| Test ID | 测试项 | 故障注入 | 预期检测 | 优先级 |
+|---------|--------|----------|----------|--------|
+| BIST-010 | Lockstep测试 | 强制result_a≠result_b | BIST_FAIL_ID=0 | P0 |
+| BIST-011 | CRC测试 | 强制CRC错误 | BIST_FAIL_ID=1 | P0 |
+| BIST-012 | Timeout测试 | 强制状态卡住 | BIST_FAIL_ID=2 | P0 |
+
+### 8.3 Safety Mechanism Assertion Check
+
+基于Design Spec v1.1第9.4节断言定义，验证以下SVA断言：
+
+#### 8.3.1 双轨比较断言 (AS1-AS10)
+
+| ID | 断言描述 | 检查信号 | 触发条件 | 延迟要求 | 优先级 |
+|----|----------|----------|----------|----------|--------|
+| AS1 | fault_detected置位 | fault_detected | result_a≠result_b | ##[1:2] cycles | P0 |
+| AS2 | 故障时输出清零 | safe_result | fault_detected=1 | ==128'h0 | P0 |
+| AS3 | Core A/B同输入 | core_a_input | DUAL_RAIL_EN=1 | ==core_b_input | P0 |
+| AS4 | 结果对齐窗口 | result_b_valid | result_a_valid=1 | ##[0:3] | P0 |
+| AS5-AS10 | 预留扩展 | - | - | - | P1 |
+
+#### 8.3.2 CRC检查断言 (AS11-AS20)
+
+| ID | 断言描述 | 检查信号 | 触发条件 | 延迟要求 | 优先级 |
+|----|----------|----------|----------|----------|--------|
+| AS11 | CRC_ERR置位 | CRC_ERR | crc_mismatch | ##1 cycle | P0 |
+| AS12 | CRC错误进ERROR | state | CRC_ERR=1 | ==ERROR | P0 |
+| AS13-AS20 | 预留扩展 | - | - | - | P1 |
+
+#### 8.3.3 超时检查断言 (AS21-AS26)
+
+| ID | 断言描述 | 检查信号 | 触发条件 | 延迟要求 | 优先级 |
+|----|----------|----------|----------|----------|--------|
+| AS21 | 状态卡住超时 | timeout_flag | $stable(state) | ##MAX_TIMEOUT | P0 |
+| AS22-AS26 | 预留扩展 | - | - | - | P1 |
+
+#### 8.3.4 FSM安全断言 (AS27-AS34) - Design Spec v1.1新增
+
+| ID | 断言描述 | 检查信号 | 触发条件 | 预期结果 | 优先级 |
+|----|----------|----------|----------|----------|--------|
+| AS27 | 无效状态转ERROR | state | !inside valid_states | ==ERROR | P0 |
+| AS28 | ERROR只能转IDLE | state | $past(state)==ERROR | ==IDLE | P0 |
+| AS29 | START触发KEY_SCHEDULE | state | IDLE&&START | ==KEY_SCHEDULE | P0 |
+| AS30 | FINAL_ROUND后OUTPUT | state | FINAL_ROUND&&round_done | ==OUTPUT_DATA | P0 |
+| AS31 | 忙状态BUSY置位 | BUSY | state!=IDLE | ==1 | P0 |
+| AS32 | DONE触发DONE_STATUS | DONE_STATUS | state==DONE | ##[0:2] | P0 |
+| AS33 | 故障时输出清零 | output_data | FAULT_DETECTED=1 | ==0 | P0 |
+| AS34 | 禁用锁步无故障 | fault_detected | !DUAL_RAIL_EN | ==0 | P0 |
+
+### 8.4 Assertion与Design Spec映射
+
+| Design Spec Section | Verification Plan | 断言范围 | 状态 |
+|---------------------|-------------------|----------|------|
+| 9.4.1 双轨比较断言 | 8.3.1 | AS1-AS10 | 已定义 |
+| 9.4.2 CRC检查断言 | 8.3.2 | AS11-AS20 | 已定义 |
+| 9.4.3 超时检查断言 | 8.3.3 | AS21-AS26 | 已定义 |
+| 9.4.4 FSM安全断言 | 8.3.4 | AS27-AS34 | v1.1新增 |
+
+### 8.5 Test Coverage Targets for Safety
 
 | 覆盖率类型 | 目标 | 当前状态 | Gap |
 |------------|------|----------|-----|
 | Safety mechanism assertion coverage | >95% | TBD | TBD |
-| Fault injection scenario coverage | 100% (48场景) | TBD | TBD |
+| Fault injection scenario coverage | 100% (48场景+新增) | TBD | TBD |
 | Error handling path coverage | 100% | TBD | TBD |
 | FSM state coverage (including ERROR) | 100% | TBD | TBD |
 | Interrupt trigger coverage | 100% | TBD | TBD |
+| BIST coverage | 100% (12场景) | TBD | TBD |
 
-### 8.4 Safety Mechanism验证检查清单
+### 8.6 Safety Mechanism验证检查清单
 
 - [ ] Dual-rail compare 能检测所有单比特翻转 (SM-001~010)
 - [ ] Dual-rail compare 能检测所有多比特翻转 (SM-011~020)
 - [ ] CRC check 能检测所有单比特数据错误 (SM-021~025)
 - [ ] CRC check 能检测所有多比特数据错误 (SM-026~029)
 - [ ] Key zeroize 能在一个周期内清零所有密钥位 (SM-036~040)
+- [ ] Key zeroize 优先级高于 key_load
+- [ ] FSM timeout 能检测所有状态卡住 (SM-041~045)
+- [ ] FSM 无效状态能安全回到IDLE (SM-046~048)
+- [ ] **ERROR状态进入和退出正确 (SM-049~054) - v1.1新增**
+- [ ] **LOCKSTEP_ACTIVE状态正确 (SM-055~056) - v1.1新增**
+- [ ] **Clock delay共因故障防护验证 (CC-001~003) - v1.1新增**
+- [ ] **BIST功能正确 (BIST-001~012) - v1.1新增**
+- [ ] 所有中断能正确触发和清除 (AS28~AS34)
+- [ ] 安全机制断言覆盖率 >95%
+- [ ] 故障注入场景覆盖率 100% (48+场景)
 - [ ] Key zeroize 优先级高于 key_load
 - [ ] FSM timeout 能检测所有状态卡住 (SM-041~045)
 - [ ] FSM 无效状态能安全回到IDLE (SM-046~048)
@@ -755,9 +859,10 @@ coverage_report:
 | REF-002 | NIST SP 800-38A | - | NIST标准 |
 | REF-003 | NIST SP 800-38D | - | NIST标准 |
 | REF-004 | IEEE P1619 | - | IEEE标准 |
-| REF-005 | Architecture Spec | v1.0 | `Database/Docs/Arch/` |
-| REF-006 | Design Spec | v1.0 | `Database/Docs/Design/` |
+| REF-005 | Architecture Spec | v1.1 | `Database/Docs/Arch/` |
+| **REF-006** | **Design Spec** | **v1.1** | **`Database/Docs/Design/`** |
 | REF-007 | Safety Mechanism Signals | v1.0 | `Database/Docs/FuSa/Safety_Mechanism_Signals.md` |
+| **REF-008** | **EDR Remediation Completed** | **v1.0** | **`ProjectMgmt/Reviews/EDR/`** |
 
 ## 附录B: 缩略语
 
