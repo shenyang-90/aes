@@ -372,9 +372,9 @@ module key_schedule (
         end else if (key_req && keys_valid) begin
             // Reverse order: w[0] is high bits, w[3] is low bits
             round_key <= {w[rk_idx], 
-                          w[(rk_idx + 1)[5:0]],
-                          w[(rk_idx + 2)[5:0]], 
-                          w[(rk_idx + 3)[5:0]]};
+                          w[rk_idx + 1],
+                          w[rk_idx + 2], 
+                          w[rk_idx + 3]};
             key_valid <= 1'b1;
         end else begin
             key_valid <= 1'b0;
