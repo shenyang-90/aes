@@ -6,6 +6,7 @@
 #include <verilated.h>
 #include <verilated_vcd_c.h>
 #include "Vtb_coverage.h"
+#include "Vtb_coverage_tb_coverage.h"
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
@@ -40,16 +41,16 @@ int main(int argc, char** argv) {
     std::cout << "AES IP Verilator Simulation" << std::endl;
     std::cout << "========================================" << std::endl;
     
-    // Reset
-    top->rst_n = 0;
+    // Reset - access signals through tb_coverage
+    top->tb_coverage->rst_n = 0;
     for (int i = 0; i < 20; i++) {
-        top->clk = !top->clk;
+        top->tb_coverage->clk = !top->tb_coverage->clk;
         top->eval();
         if (tfp) tfp->dump(main_time);
         main_time++;
     }
     
-    top->rst_n = 1;
+    top->tb_coverage->rst_n = 1;
     std::cout << "[SIM] Reset released" << std::endl;
     
     // Run simulation
@@ -59,7 +60,7 @@ int main(int argc, char** argv) {
     
     while (cycle < max_cycles && !finished) {
         // Toggle clock
-        top->clk = !top->clk;
+        top->tb_coverage->clk = !top->tb_coverage->clk;
         
         // Evaluate
         top->eval();
@@ -74,7 +75,7 @@ int main(int argc, char** argv) {
         }
         
         main_time++;
-        if (top->clk == 0) cycle++;
+        if (top->tb_coverage->clk == 0) cycle++;
     }
     
     if (cycle >= max_cycles) {

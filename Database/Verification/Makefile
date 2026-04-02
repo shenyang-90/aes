@@ -87,6 +87,14 @@ list-tests:
 	@echo "Available tests:"
 	@ls -1 $(TC_DIR)/directed/*.sv | xargs -n1 basename | sed 's/.sv//' | sed 's/^/  - /'
 
+# Fast error handling tests (split from tc_error_handling)
+error-tests:
+	@echo "Running error handling tests (fast)..."
+	@for test in tc_error_mode_invalid tc_error_reserved_sampled tc_error_rapid_start tc_error_interrupt tc_error_readonly; do \
+		echo "Running $$test..."; \
+		$(MAKE) TEST=$$test sim 2>&1 | grep -E "(PASS|FAIL|Passed|Failed)" | tail -2; \
+	done
+
 help:
 	@echo "AES IP Verification Makefile"
 	@echo ""
