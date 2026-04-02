@@ -66,7 +66,11 @@
 
 ---
 
-## 遗留任务
+## IDR 阶段任务 🟡 进行中
+
+| 任务ID | 任务名称 | 交付物 | 状态 | 优先级 |
+|--------|----------|--------|------|--------|
+| TASK-AES-EDR-002 | EDR Minor Issues Remediation | Design_Spec.md v1.2 + EDR_Minor_Remediation.md | 🟡 ASSIGNED | P2 |
 
 ### DFT Specification ⏳
 **优先级**: P2  
