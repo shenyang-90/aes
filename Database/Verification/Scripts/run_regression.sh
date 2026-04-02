@@ -66,6 +66,12 @@ TESTS=(
     "tc_toggle_coverage"
     "tc_corner_cases"
     "tc_reset_error_coverage"
+    # Safety Mechanism Tests (DDR新增 - 2026-04-01)
+    "tc_safety_dual_rail"
+    "tc_safety_crc_error"
+    "tc_safety_key_zeroize"
+    "tc_safety_fsm_timeout"
+    "tc_safety_interrupt"
 )
 
 # Counters

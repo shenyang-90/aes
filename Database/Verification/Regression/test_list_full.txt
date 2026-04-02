@@ -102,3 +102,10 @@ Database/Verification/Testcases/directed/tc_aes128_only.sv
 Database/Verification/Testcases/directed/tc_toggle_coverage.sv
 Database/Verification/Testcases/directed/tc_corner_cases.sv
 Database/Verification/Testcases/directed/tc_reset_error_coverage.sv
+
+# Safety Mechanism Tests (新增 - 2026-04-01)
+Database/Verification/Testcases/directed/tc_safety_dual_rail.sv
+Database/Verification/Testcases/directed/tc_safety_crc_error.sv
+Database/Verification/Testcases/directed/tc_safety_key_zeroize.sv
+Database/Verification/Testcases/directed/tc_safety_fsm_timeout.sv
+Database/Verification/Testcases/directed/tc_safety_interrupt.sv
