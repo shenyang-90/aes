@@ -21,7 +21,7 @@ VFLAGS       = --cc --trace --timing \
                --coverage-line \
                --coverage-toggle \
                --public-flat-rw \
-               -Wno-WIDTHTRUNC -Wno-WIDTHEXPAND -Wno-CASEINCOMPLETE -Wno-PINMISSING \
+               -Wno-WIDTHTRUNC -Wno-WIDTHEXPAND \
                -Mdir $(OUT_DIR)/obj_dir \
                -CFLAGS "-std=c++20 -O2" \
                -LDFLAGS "-lpthread" \
