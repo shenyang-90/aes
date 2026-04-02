@@ -4,6 +4,7 @@
 
 | Bug ID | Severity | Status | Title | Assignee | Due Date |
 |--------|----------|--------|-------|----------|----------|
+| BUG-017 | **Critical** | 🔴 OPEN | BUSY Status Logic Error - DUAL_RAIL_EN Protection Bypass | Design Agent | 2026-04-02 |
 | BUG-002 | Critical | ✅ CLOSED | Unpacked structs not supported | Coding Yang | Done |
 | BUG-003 | Major | ✅ CLOSED | AES-192/256 key length incomplete | Design Agent | 2026-03-31 |
 | BUG-004 | Major | 🟢 FIXED | GCM mode implementation incomplete | Design Agent | 2026-03-31 |
@@ -66,6 +67,9 @@ Found → Logged → Triage → Assigned → Fixed → Verified → Closed
 - [BUG-008.md](./BUG-008.md) - XTS tweak block_num 简化 🟢 FIXED
 - [BUG-009.md](./BUG-009.md) - GCM 多块 AAD/CT 处理 🟢 FIXED
 - [BUG-010.md](./BUG-010.md) - CRC checker 未使用 data_in 🟢 FIXED
+
+### 功能安全机制 Bug (新发现)
+- [BUG-017.md](./BUG-017.md) - BUSY状态逻辑错误 - DUAL_RAIL_EN保护失效 🔴 **OPEN (Critical)**
 
 ### 功能覆盖率发现的问题 (已修复)
 - [BUG-011.md](./BUG-011.md) - GCM Tag 生成不完整 🟢 FIXED
