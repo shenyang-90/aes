@@ -67,6 +67,32 @@
 
 ---
 
+## IDR 阶段任务 🟡 进行中
+
+### TASK-AES-EDR-002-VERIF: EDR Minor Issues 修复
+**分配时间**: 2026-04-02  
+**截止日期**: 2026-04-04  
+**状态**: 🟡 ASSIGNED - 等待开始
+
+**待修复 Issues (6个)**:
+| Issue | 章节 | 描述 |
+|-------|------|------|
+| m5 | 9.4 | AS1 Assertion Delay Specification |
+| m11 | 9.2 | Safety Mechanism Coverage Quantification |
+| m12 | 9.4 | AS1 Assertion RTL Timing Confirmation |
+| m13 | 9.3 | Fault Injection Method Distinction |
+| m14 | Ch9 | Verification Strategy Chapter Brief |
+
+**交付物**:
+- [ ] Verification_Plan.md v1.1
+- [ ] EDR_Minor_Remediation_Verif.md
+
+**依赖对齐**:
+- m5, m12 (断言) ↔ Design Agent 断言定义
+- m13 (故障注入) ↔ FuSa Engineer FI Plan
+
+---
+
 ## 覆盖率目标
 
 | 类型 | 目标 | 当前状态 |

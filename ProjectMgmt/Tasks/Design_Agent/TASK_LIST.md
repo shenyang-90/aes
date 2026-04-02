@@ -68,9 +68,35 @@
 
 ## IDR 阶段任务 🟡 进行中
 
-| 任务ID | 任务名称 | 交付物 | 状态 | 优先级 |
-|--------|----------|--------|------|--------|
-| TASK-AES-EDR-002 | EDR Minor Issues Remediation | Design_Spec.md v1.2 + EDR_Minor_Remediation.md | 🟡 ASSIGNED | P2 |
+### TASK-AES-EDR-002-DESIGN: EDR Minor Issues 修复
+**分配时间**: 2026-04-02  
+**截止日期**: 2026-04-04  
+**状态**: 🟡 ASSIGNED - 等待开始
+
+**待修复 Issues (11个)**:
+| Issue | 章节 | 描述 |
+|-------|------|------|
+| m1 | 2.2 | S-Box Area Clarification |
+| m2 | 5.2.5 | CTS State Branch Handling |
+| m3 | 7.2 | Clock Skew in Gated Clock Hierarchy |
+| m4 | 8.6 | Lockstep Power Quantification |
+| m6 | 6.4 | FMEDA DC Update Mechanism |
+| m7 | 6.2.2 | Fault Detection Path Timing |
+| m8 | 5.3.2 | Timeout Detection Rate Explanation |
+| m9 | 6.3.2 | BIST Code Example Incomplete |
+| m10 | 4.11 | BIST_FAIL_ID Mapping Table |
+| m15 | 3.1 | AXI4-Stream Timing Diagram Missing |
+
+**交付物**:
+- [ ] Design_Specification.md v1.2
+- [ ] EDR_Minor_Remediation_Design.md
+
+**依赖对齐**:
+- m1 (面积) ↔ IP Architect m17
+- m3 (时钟) ↔ IP Architect m18
+- m4 (功耗) ↔ IP Architect m19
+
+---
 
 ### DFT Specification ⏳
 **优先级**: P2  

@@ -88,4 +88,31 @@
 
 ---
 
-*最后更新: 2026-03-31 11:55*
+## IDR 阶段任务 🟡 进行中
+
+### TASK-AES-EDR-002-ARCH: EDR Minor Issues 修复
+**分配时间**: 2026-04-02  
+**截止日期**: 2026-04-04  
+**状态**: 🟡 ASSIGNED - 等待开始
+
+**待修复 Issues (5个)**:
+| Issue | 章节 | 描述 |
+|-------|------|------|
+| m16 | 5.2.4 | XTS Operator Definition |
+| m17 | 2.2 | Area Estimation Confidence Interval |
+| m18 | 7.2 | L3 Clock Gating Enable Logic |
+| m19 | 8.5 | Power PVT Conditions |
+| m20 | 10.1 | Patent Technical Details |
+
+**交付物**:
+- [ ] Architecture_Spec.md v1.1
+- [ ] EDR_Minor_Remediation_Arch.md
+
+**依赖对齐** (Design Agent 依赖本任务):
+- m17 (面积置信区间) → Design Agent m1 (S-Box面积)
+- m18 (L3门控逻辑) → Design Agent m3 (时钟偏斜)
+- m19 (PVT条件) → Design Agent m4 (功耗量化)
+
+---
+
+*最后更新: 2026-04-02*
