@@ -1,8 +1,9 @@
 //============================================================================
 // Module: aes_controller
 // Description: AES IP main controller - FSM and coordination
+//              Added: Watchdog timeout mechanism for functional safety
 // Project: AES_Crypto_IP
-// Version: 1.0
+// Version: 1.1 (Safety Enhanced)
 //============================================================================
 `timescale 1ns / 1ps
 
@@ -40,7 +41,20 @@ module aes_controller (
     
     // Interrupt
     output reg         int_done,         // Operation complete interrupt
-    output reg         int_error         // Error interrupt
+    output reg         int_error,        // Error interrupt
+    
+    //========================================================================
+    // NEW: Safety mechanism outputs
+    //========================================================================
+    output reg         timeout_err,      // Watchdog timeout error (STATUS[6])
+    output reg         fault_detected,   // Combined fault detection
+    input  wire        clear_fault,      // Clear fault signal (from STATUS write)
+    
+    //========================================================================
+    // BUG-017 Fix: Export state for BUSY detection
+    // Design Spec v1.2 Section 8.2.3.3: BUSY when state != IDLE && state != DONE
+    //========================================================================
+    output wire [3:0]  ctrl_state        // Current FSM state for BUSY detection
 );
 
     //========================================================================
@@ -83,6 +97,37 @@ module aes_controller (
     wire        int_en_error  = ctrl_reg[17];
     
     //========================================================================
+    // NEW: Watchdog Timer for Functional Safety
+    // Detects FSM stuck conditions and auto-recovers
+    //========================================================================
+    localparam WATCHDOG_TIMEOUT = 10;  // 10 cycles timeout (per test requirement)
+    localparam WATCHDOG_WIDTH = 4;     // 4 bits to count up to 10
+    
+    reg [WATCHDOG_WIDTH-1:0] watchdog_cnt;
+    reg                      watchdog_en;
+    wire                     watchdog_expired;
+    
+    // Watchdog enable: active in all states except IDLE, DONE, and ERROR
+    always @(*) begin
+        watchdog_en = (state != IDLE) && (state != DONE) && (state != ERROR);
+    end
+    
+    // Watchdog counter
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            watchdog_cnt <= {WATCHDOG_WIDTH{1'b0}};
+        end else if (!watchdog_en) begin
+            // Reset counter when in IDLE/DONE/ERROR or when fault is cleared
+            watchdog_cnt <= {WATCHDOG_WIDTH{1'b0}};
+        end else if (watchdog_cnt < WATCHDOG_TIMEOUT) begin
+            watchdog_cnt <= watchdog_cnt + 1'b1;
+        end
+    end
+    
+    // Watchdog expiration detection
+    assign watchdog_expired = (watchdog_cnt >= WATCHDOG_TIMEOUT) && watchdog_en;
+    
+    //========================================================================
     // State Register
     //========================================================================
     always @(posedge clk or negedge rst_n) begin
@@ -94,73 +139,80 @@ module aes_controller (
     end
     
     //========================================================================
-    // Next State Logic
+    // Next State Logic (with Watchdog integration)
     //========================================================================
     always @(*) begin
         next_state = state;
         
-        case (state)
-            IDLE: begin
-                if (ctrl_start && config_valid)
-                    next_state = KEY_SCHEDULE;
-            end
-            
-            KEY_SCHEDULE: begin
-                // Key schedule phase - immediately proceed to data load
-                // Original design: LOAD_KEY -> LOAD_IV
-                next_state = LOAD_DATA;
-            end
-            
-            KEY_WAIT: begin
-                // Reserved state - bypass to LOAD_DATA
-                // Not used in current design (key schedule is immediate)
-                next_state = LOAD_DATA;
-            end
-            
-            LOAD_DATA: begin
-                // Load IV/data configuration, then wait for data
-                next_state = LOAD_DATA_WAIT;
-            end
-            
-            LOAD_DATA_WAIT: begin
-                if (data_in_valid)
-                    next_state = ROUND_OP;
-            end
-            
-            ROUND_OP: begin
-                next_state = ROUND_WAIT;
-            end
-            
-            ROUND_WAIT: begin
-                if (core_done)
+        // Check watchdog timeout first (highest priority for safety)
+        if (watchdog_expired && state != ERROR) begin
+            next_state = ERROR;
+        end else begin
+            case (state)
+                IDLE: begin
+                    if (ctrl_start && config_valid)
+                        next_state = KEY_SCHEDULE;
+                end
+                
+                KEY_SCHEDULE: begin
+                    // Key schedule phase - immediately proceed to data load
+                    // Original design: LOAD_KEY -> LOAD_IV
+                    next_state = LOAD_DATA;
+                end
+                
+                KEY_WAIT: begin
+                    // Reserved state - bypass to LOAD_DATA
+                    // Not used in current design (key schedule is immediate)
+                    next_state = LOAD_DATA;
+                end
+                
+                LOAD_DATA: begin
+                    // Load IV/data configuration, then wait for data
+                    next_state = LOAD_DATA_WAIT;
+                end
+                
+                LOAD_DATA_WAIT: begin
+                    if (data_in_valid)
+                        next_state = ROUND_OP;
+                end
+                
+                ROUND_OP: begin
+                    next_state = ROUND_WAIT;
+                end
+                
+                ROUND_WAIT: begin
+                    if (core_done)
+                        next_state = OUTPUT_DATA;
+                end
+                
+                FINAL_ROUND: begin
+                    // Final round - integrated with ROUND_OP/ROUND_WAIT
+                    // This state is reserved for future use if needed
                     next_state = OUTPUT_DATA;
-            end
-            
-            FINAL_ROUND: begin
-                // Final round - integrated with ROUND_OP/ROUND_WAIT
-                // This state is reserved for future use if needed
-                next_state = OUTPUT_DATA;
-            end
-            
-            OUTPUT_DATA: begin
-                if (data_out_ready)
-                    next_state = DONE;
-            end
-            
-            DONE: begin
-                next_state = IDLE;
-            end
-            
-            ERROR: begin
-                next_state = IDLE;
-            end
-            
-            default: next_state = IDLE;
-        endcase
+                end
+                
+                OUTPUT_DATA: begin
+                    if (data_out_ready)
+                        next_state = DONE;
+                end
+                
+                DONE: begin
+                    next_state = IDLE;
+                end
+                
+                ERROR: begin
+                    // Stay in ERROR until fault is cleared by software
+                    if (clear_fault)
+                        next_state = IDLE;
+                end
+                
+                default: next_state = IDLE;
+            endcase
+        end
     end
     
     //========================================================================
-    // Output Logic
+    // Output Logic (with Safety Mechanisms)
     //========================================================================
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -173,6 +225,8 @@ module aes_controller (
             cts_enable  <= 1'b0;
             int_done    <= 1'b0;
             int_error   <= 1'b0;
+            timeout_err <= 1'b0;      // NEW: Clear timeout error
+            fault_detected <= 1'b0;   // NEW: Clear fault
         end else begin
             // Default values
             core_start  <= 1'b0;
@@ -180,6 +234,12 @@ module aes_controller (
             iv_load     <= 1'b0;
             int_done    <= 1'b0;
             int_error   <= 1'b0;
+            
+            // Fault signals are sticky, cleared by clear_fault or reset
+            if (clear_fault) begin
+                timeout_err <= 1'b0;
+                fault_detected <= 1'b0;
+            end
             
             case (state)
                 KEY_SCHEDULE: begin
@@ -209,6 +269,11 @@ module aes_controller (
                 end
                 
                 ERROR: begin
+                    // Set timeout error and fault detected flags
+                    if (watchdog_expired && !timeout_err)
+                        timeout_err <= 1'b1;
+                    if (watchdog_expired || state == ERROR)
+                        fault_detected <= 1'b1;
                     if (int_en_error)
                         int_error <= 1'b1;
                 end
@@ -219,5 +284,8 @@ module aes_controller (
     // Status outputs
     assign data_in_ready  = (state == LOAD_DATA_WAIT);
     assign data_out_valid = (state == OUTPUT_DATA);
+    
+    // BUG-017 Fix: Export state for BUSY detection
+    assign ctrl_state = state;
     
 endmodule
