@@ -37,7 +37,10 @@ COMP_FLAGS = -g2012 -Wall \
 	-I $(RTL_DIR) \
 	-I $(ENV_DIR)/tb
 
-.PHONY: compile sim view clean lint regression help
+# Note: Testcases include tb_base.sv directly, don't add TB_BASE here
+# TB_BASE = $(ENV_DIR)/tb/tb_base.sv
+
+.PHONY: compile sim view clean lint regression help list-tests
 
 compile:
 	@mkdir -p $(OUT_DIR)

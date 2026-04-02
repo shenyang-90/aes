@@ -20,8 +20,6 @@ VERILATOR    = verilator
 VFLAGS       = --cc --trace --timing \
                --coverage-line \
                --coverage-toggle \
-               --coverage-branch \
-               --coverage-user \
                -Mdir $(OUT_DIR)/obj_dir \
                -CFLAGS "-std=c++17 -O2" \
                -LDFLAGS "-lpthread" \
