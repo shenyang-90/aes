@@ -1,0 +1,12 @@
+========================================
+AES IP Regression Test
+Started: Thu 02 Apr 2026 07:08:02 PM CST
+========================================
+
+[1] Running tc_smoke...
+[0;31m  FAIL[0m
+
+[2] Running tc_register_full...
+[0;32m  PASS[0m
+
+[3] Running tc_interrupt_all...

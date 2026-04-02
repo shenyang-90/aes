@@ -1,0 +1,46 @@
+========================================
+AES IP Fast Regression Test
+Started: Thu 02 Apr 2026 07:10:53 PM CST
+Test Timeout: 60s per test
+========================================
+
+[1] Running tc_smoke...
+[1;33m  TIMEOUT[0m
+  (Test made progress before timeout)
+
+[2] Running tc_register_full...
+[0;32m  PASS[0m
+
+[3] Running tc_interrupt_all...
+[1;33m  TIMEOUT[0m
+  (Test made progress before timeout)
+
+[4] Running tc_ecb_nist...
+[1;33m  TIMEOUT[0m
+
+[5] Running tc_cbc_nist...
+[1;33m  TIMEOUT[0m
+
+[6] Running tc_ctr_nist...
+[1;33m  TIMEOUT[0m
+
+[7] Running tc_key_length...
+[1;33m  TIMEOUT[0m
+
+[8] Running tc_error_handling...
+[0;31m  FAIL[0m
+
+[9] Running tc_gcm_basic...
+[1;33m  TIMEOUT[0m
+
+[10] Running tc_xts_basic...
+[1;33m  TIMEOUT[0m
+
+========================================
+Regression Complete: Thu 02 Apr 2026 07:18:54 PM CST
+========================================
+Total:    10
+[0;32mPass:     1[0m
+[0;31mFail:     1[0m
+[1;33mTimeout:  8[0m
+Report:   /home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/Verification/../../ProjectMgmt/Reviews/IDR/regression_report_20260402_191053.txt
