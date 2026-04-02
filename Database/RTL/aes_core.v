@@ -263,6 +263,9 @@ module aes_core (
                     state <= IDLE;
                     done <= 0;
                 end
+                default: begin  // Should not reach here
+                    state <= IDLE;
+                end
             endcase
         end
     end

@@ -514,6 +514,7 @@ module aes_top #(
                     REG_SECTOR_ID:  sector_id_reg  <= pwdata;
                     REG_INT_EN:     int_en_reg     <= pwdata;
                     REG_INT_STATUS: int_status_reg <= int_status_reg & ~pwdata;  // W1C
+                    default: ;  // Ignore writes to undefined addresses
                 endcase
             end else if (apb_read && paddr == REG_INT_STATUS) begin
                 // Read-Clear (RC) behavior: clear all bits on read

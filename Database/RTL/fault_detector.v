@@ -106,6 +106,7 @@ module fault_detector (
                     if (op_done)
                         state <= IDLE;
                 end
+                default: state <= IDLE;  // Should not reach here
             endcase
         end
     end

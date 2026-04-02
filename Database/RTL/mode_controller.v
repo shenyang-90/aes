@@ -74,6 +74,8 @@ module mode_controller (
         .gcm_start      (gcm_calc_h),
         .gcm_done       (done),
         .hash_subkey_h  (gcm_hash_subkey_h),
+        .j0_data        (128'h0),  // Not used in this implementation
+        .j0_valid       (1'b0),
         .aad_data       (aad_data),
         .aad_valid      (aad_valid),
         .aad_last       (1'b0),  // Simplified: single AAD block
@@ -83,7 +85,10 @@ module mode_controller (
         .aad_len        (aad_len),
         .ct_len         (ct_len),
         .tag            (gcm_tag),
-        .tag_valid      (gcm_tag_valid)
+        .tag_valid      (gcm_tag_valid),
+        .tag_in         (128'h0),  // Not used in verify mode
+        .tag_verify     (1'b0),
+        .tag_mismatch   ()         // Not monitored
     );
     
     always @(posedge clk or negedge rst_n) begin

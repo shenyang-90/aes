@@ -277,6 +277,7 @@ module aes_controller (
                     if (int_en_error)
                         int_error <= 1'b1;
                 end
+                default: ;  // IDLE and other states: no operation
             endcase
         end
     end
