@@ -128,9 +128,10 @@ module aes_top #(
             pslverr <= 1'b0;  // No errors
             
             // Update INT_STATUS: set by events, clear by W1C
-            if (int_done_set)
-                int_status_reg[0] <= 1'b1;
+            // Design Spec v1.2: [0]=ERROR_STATUS, [1]=DONE_STATUS, [2]=FAULT_STATUS
             if (int_error_set)
+                int_status_reg[0] <= 1'b1;
+            if (int_done_set)
                 int_status_reg[1] <= 1'b1;
             if (int_fault_set)
                 int_status_reg[2] <= 1'b1;
@@ -473,8 +474,9 @@ module aes_top #(
     assign int_crc_set   = crc_error_reg;
     
     // Interrupt outputs (masked by enable bits)
-    assign int_done  = int_done_set  && int_en_reg[0];
-    assign int_error = int_error_set && int_en_reg[1];
+    // Design Spec v1.2: [0]=ERROR_INT_EN, [1]=DONE_INT_EN, [2]=FAULT_INT_EN
+    assign int_error = int_error_set && int_en_reg[0];
+    assign int_done  = int_done_set  && int_en_reg[1];
     assign int_fault = fault_detected && int_en_reg[2];
     
 endmodule
