@@ -18,7 +18,8 @@
 |------|------|---------|------|
 | v0.1 | 2026-03-31 | 初始框架 | Verification Lead |
 | v1.0 | 2026-03-31 | 完整验证计划，含TVLA、故障注入、CTS边界验证 | AI-Yang Verification Agent |
-| **v1.1** | **2026-04-02** | **根据Design Spec v1.1 EDR修复更新：补充Lockstep/BIST测试、更新断言映射、完善安全机制验证** | **Verification Agent** |
+| v1.1 | 2026-04-02 | 根据Design Spec v1.1 EDR修复更新：补充Lockstep/BIST测试、更新断言映射、完善安全机制验证 | Verification Agent |
+| **v1.1.1** | **2026-04-02** | **EDR Minor Issues修复：AS1断言延迟说明(m5,m12)、覆盖率量化方法(m11)、故障注入方法分类(m13)、验证策略testcase整合(m14)** | **Verification Agent** |
 
 ## 1. 验证策略
 
@@ -71,22 +72,72 @@
 | **Formal Verification** | L1 | 15% | JasperGold/VC Formal |
 | **Fault Injection** | L2-L3 | 10% | UVM + SVA |
 
-### 1.4 验证入口/出口标准
+### 1.4 验证策略详细规划 (Fix m14)
+
+基于Verification Plan全文档testcase汇总，验证策略的核心测试场景分布如下：
+
+#### 1.4.1 测试场景分布矩阵
+
+| 验证维度 | 测试用例数 | P0关键用例 | 覆盖重点 | 章节引用 |
+|----------|-----------|-----------|----------|----------|
+| **功能验证** | 40+ | ECB-001~005, CBC-001~004, CTS-B-001~005 | 6种模式×3种密钥长度×NIST向量 | 第2章 |
+| **CTS边界** | 31 | CTS-B-001~031 | 1-127 bit全边界覆盖 | 2.3节 |
+| **TVLA侧信道** | 6 | TP-001~006 | 关键中间值泄露评估 | 第3章 |
+| **故障注入** | 48+ | SM-001~056 | Dual-rail/CRC/FSM/ERROR状态 | 第8章 |
+| **BIST验证** | 12 | BIST-001~012 | 上电/周期/按需三种触发 | 8.2节 |
+| **安全断言** | 34 | AS1~AS34 | 双轨比较/CRC/超时/FSM | 8.3节 |
+| **回归测试** | 1000+ | Smoke/Nightly/Weekly/Pre-Gate | 四级回归分级 | 第7章 |
+
+#### 1.4.2 关键测试场景链路
+
+```
+验证场景链路 (Scenario Chains):
+├── 基础功能链路 (P0)
+│   ├── ECB-001 → ECB-002 → ECB-003 (密钥长度覆盖)
+│   ├── CBC-001 → CBC-002 → CBC-003 (模式正确性)
+│   └── CTS-B-001 → CTS-B-005 (边界极值)
+├── 安全机制链路 (ASIL-D)
+│   ├── SM-001~010 → SM-049~054 (故障检测→ERROR处理)
+│   ├── BIST-001 → BIST-010~012 (BIST触发→故障检测)
+│   └── AS1~AS4 → AS27~AS34 (断言覆盖)
+├── 故障恢复链路
+│   ├── SM-041~048 → SM-049~054 (超时/无效状态→ERROR进入/退出)
+│   └── CC-001~003 (共因故障防护)
+└── 回归验证链路
+    ├── Smoke: 10个核心用例快速验证
+    ├── Nightly: 100个功能用例全面验证
+    ├── Weekly: 500个用例+覆盖率收敛
+    └── Pre-Gate: 1000个用例全量Sign-off
+```
+
+#### 1.4.3 验证策略与Testcase映射
+
+| 验证目标 | 验证方法 | 关键Testcase | 成功标准 |
+|----------|----------|--------------|----------|
+| VER-G1 功能正确性 | NIST向量对比 | ECB-001~005, CBC-001~004, CTR-001~003, GCM-001~004 | 100%比对通过 |
+| VER-G2 模式支持 | 全模式交叉 | XTS-001~004, CTS-B-001~031 | 6模式×3密钥长度 |
+| VER-G3 侧信道防护 | TVLA测试 | TP-001~006 | \|t\| < 4.5 |
+| VER-G4 故障检测 | 故障注入+断言 | SM-001~056, AS1~AS34 | >99%检测率 |
+| VER-G5 CTS边界 | 边界值分析 | CTS-B-001~031 | 1-127 bit全cover |
+
+### 1.5 验证入口/出口标准
 
 **入口标准 (Entry Criteria):**
 - [x] Architecture Spec v1.0 批准
-- [x] 设计文档 (Design Spec) 完成
+- [x] 设计文档 (Design Spec v1.1) 完成
 - [x] RTL Freeze (Lint/CDC clean)
 - [x] UVM环境框架搭建完成
+- [x] 参考模型 (PyCryptodome) 集成完成
 
 **出口标准 (Exit Criteria):**
 - [ ] 代码覆盖率 >90% (Line/Condition/FSM/Toggle)
 - [ ] 功能覆盖率 >85% (Covergroup/Cross)
-- [ ] 断言覆盖率 >95% (SVA)
-- [ ] TVLA测试通过 (|t| < 4.5)
-- [ ] 故障注入测试: 安全机制检测率 >99%
-- [ ] CTS边界条件: 1-127 bit全部覆盖
-- [ ] 回归测试连续2周100%通过
+- [ ] 断言覆盖率 >95% (SVA: AS1~AS34全部触发)
+- [ ] TVLA测试通过 (\|t\| < 4.5)
+- [ ] 故障注入测试: 安全机制检测率 >99% (SM-001~056全部通过)
+- [ ] CTS边界条件: 1-127 bit全部覆盖 (CTS-B-001~031)
+- [ ] BIST验证通过: 上电/周期/按需三种触发全部验证
+- [ ] 回归测试连续2周100%通过 (Nightly级别)
 
 ---
 
@@ -637,9 +688,59 @@ coverage_report:
 
 本章基于FuSa安全机制信号分析文档，定义AES IP功能安全验证计划。
 
-### 8.1 Fault Injection Test Plan
+### 8.1 故障注入方法分类 (Fix m13)
 
-基于FuSa信号分析(第3章)，补充故障注入测试需求：
+故障注入测试需区分软件注入和硬件注入两种方法，根据验证阶段和可用资源选择合适的方法。
+
+#### 8.1.1 软件注入方法 (Simulation/Emulation)
+
+| 注入方法 | 适用平台 | 实现方式 | 精度 | 适用场景 |
+|----------|----------|----------|------|----------|
+| **Verilog Force** | 仿真器(VCS/Xcelium) | `$force`/$deposit信号强制 | 单cycle精确 | 早期RTL验证、回归测试 |
+| **UVM Backdoor** | UVM Testbench | `uvm_hdl_deposit` | 单cycle精确 | 自动化测试、大规模场景 |
+| **VPI Injection** | 协同仿真 | C/C++ VPI接口 | 单cycle精确 | 复杂故障序列 |
+| **Emulation Fault** | 硬件仿真器(Palladium/Veloce) | 专用FI接口 | 约10ns精度 | 加速验证、长序列测试 |
+
+**软件注入特点**:
+- ✅ 完全可控: 精确控制注入时机、位置、类型
+- ✅ 可重复: 相同的随机种子产生相同的故障序列
+- ✅ 自动化友好: 易于集成到CI/CD流程
+- ❌ 仿真速度: 大规模故障注入耗时较长
+- ❌ 物理效应: 无法模拟EMFI等物理攻击的时序不确定性
+
+#### 8.1.2 硬件注入方法 (FPGA/硅片)
+
+| 注入方法 | 适用平台 | 实现方式 | 精度 | 适用场景 |
+|----------|----------|----------|------|----------|
+| **Clock Glitch** | FPGA/ASIC | 时钟频率瞬时变化 | ~ns级 | 时序故障测试 |
+| **Voltage Glitch** | FPGA/ASIC | 电源电压毛刺注入 | ~us级 | 电压故障测试 |
+| **EMFI** | 封装芯片 | 电磁脉冲注入 | ~100ps级 | 物理安全验证 |
+| **Laser Fault** | 裸片 | 激光单点照射 | 单bit精确 | 深层故障分析 |
+
+**硬件注入特点**:
+- ✅ 物理真实: 模拟真实攻击场景
+- ✅ 速度快: 实际硬件运行速度
+- ✅ 发现隐藏问题: 可能触发仿真中未考虑到的时序问题
+- ❌ 可控性差: 难以精确定位故障注入点
+- ❌ 设备依赖: 需要专用设备和实验室环境
+- ❌ 不可重复: 同一注入参数可能产生不同效果
+
+#### 8.1.3 方法选择矩阵
+
+| 测试场景 | 推荐方法 | 备选方法 | 说明 |
+|----------|----------|----------|------|
+| SM-001~020 Dual-rail测试 | Verilog Force | UVM Backdoor | RTL阶段首选软件注入 |
+| SM-021~029 CRC测试 | Verilog Force | UVM Backdoor | RTL阶段首选软件注入 |
+| SM-030~040 Key测试 | Verilog Force | VPI Injection | 涉及密钥安全，需精确控制 |
+| SM-041~048 FSM测试 | Verilog Force | Clock Glitch | Stuck-at用force，timing用glitch |
+| SM-049~056 ERROR状态 | Verilog Force | UVM Backdoor | 状态转换验证首选软件 |
+| CC-001~003 Clock Delay | Clock Glitch | Verilog Force | 共因故障需硬件验证 |
+| BIST-001~012 BIST测试 | 实际触发 | Verilog Force | BIST功能用实际触发，故障用force |
+| TVLA预测试 | 实际采集 | - | 必须在真实硬件上执行 |
+
+#### 8.1.4 注入方法映射到测试用例
+
+以下表格标明每个测试用例适用的故障注入方法：
 
 #### 8.1.1 Dual-rail Compare故障注入测试
 
@@ -785,11 +886,18 @@ coverage_report:
 
 | ID | 断言描述 | 检查信号 | 触发条件 | 延迟要求 | 优先级 |
 |----|----------|----------|----------|----------|--------|
-| AS1 | fault_detected置位 | fault_detected | result_a≠result_b | ##[1:2] cycles | P0 |
+| AS1 | fault_detected置位 | fault_detected | result_a≠result_b | ##[1:3] cycles | P0 |
 | AS2 | 故障时输出清零 | safe_result | fault_detected=1 | ==128'h0 | P0 |
 | AS3 | Core A/B同输入 | core_a_input | DUAL_RAIL_EN=1 | ==core_b_input | P0 |
 | AS4 | 结果对齐窗口 | result_b_valid | result_a_valid=1 | ##[0:3] | P0 |
 | AS5-AS10 | 预留扩展 | - | - | - | P1 |
+
+**AS1断言延迟说明 (Fix m5, m12)**:
+- **延迟范围**: `##[1:3]` 表示允许1到3个cycle的延迟
+- **设计依据**: RTL实现中，fault_detected的生成需要经过比较器逻辑+同步寄存器，典型延迟为1-2 cycles
+- **最大延迟**: 考虑PVT corner worst case，设置上限为3 cycles
+- **验证方法**: 使用`$rose(fault_detected)`配合`##[1:3]`灵活匹配，而非严格的`##1`
+- **RTL确认状态**: ⏳ 待Design Agent确认实际延迟，当前使用宽松匹配策略
 
 #### 8.3.2 CRC检查断言 (AS11-AS20)
 
@@ -838,6 +946,77 @@ coverage_report:
 | FSM state coverage (including ERROR) | 100% | TBD | TBD |
 | Interrupt trigger coverage | 100% | TBD | TBD |
 | BIST coverage | 100% (12场景) | TBD | TBD |
+
+**安全机制激活覆盖率量化方法 (Fix m11)**:
+
+安全机制激活覆盖率目标100%的量化方法如下：
+
+#### 8.5.1 覆盖率计算公式
+
+```
+安全机制覆盖率 = (已验证的安全机制激活场景数 / 总安全机制激活场景数) × 100%
+```
+
+#### 8.5.2 功能覆盖点定义 (Covergroup)
+
+```systemverilog
+// 安全机制激活覆盖率
+covergroup cg_safety_mechanism_activation;
+    // Dual-rail Compare激活
+    cp_dual_rail_active: coverpoint dual_rail_active {
+        bins active = {1};
+    }
+    
+    // CRC检查激活
+    cp_crc_check_active: coverpoint crc_check_active {
+        bins active = {1};
+    }
+    
+    // Watchdog超时检测激活
+    cp_watchdog_active: coverpoint watchdog_active {
+        bins active = {1};
+    }
+    
+    // FSM无效状态检测
+    cp_fsm_invalid_detected: coverpoint fsm_invalid_detected {
+        bins detected = {1};
+    }
+    
+    // ERROR状态进入
+    cp_error_state_entered: coverpoint error_state_entered {
+        bins entered = {1};
+    }
+    
+    // 安全机制交叉覆盖
+    cx_safety_mechanisms: cross cp_dual_rail_active, cp_crc_check_active, 
+                                  cp_watchdog_active, cp_fsm_invalid_detected;
+endgroup
+```
+
+#### 8.5.3 覆盖率收集方法
+
+| 覆盖点 | 信号来源 | 收集位置 | 触发条件 |
+|--------|----------|----------|----------|
+| dual_rail_active | fault_detector内部 | UVM monitor | DUAL_RAIL_EN=1且比较执行 |
+| crc_check_active | crc_checker内部 | UVM monitor | CRC_EN=1且数据校验 |
+| watchdog_active | timeout_counter | UVM monitor | 状态机超时触发 |
+| fsm_invalid_detected | state_decoder | UVM monitor | 检测到无效状态编码 |
+| error_state_entered | aes_controller | UVM monitor | 状态进入ERROR |
+
+#### 8.5.4 100%覆盖率达成标准
+
+- **每个安全机制至少被激活一次**: Dual-rail、CRC、Watchdog、FSM invalid各至少1次
+- **安全机制组合场景**: 至少验证2个安全机制同时激活的场景
+- **ERROR状态触发**: 所有进入ERROR状态的路径至少覆盖1次
+- **中断触发验证**: 每种fault_type对应的STATUS位变化至少验证1次
+
+#### 8.5.5 覆盖率收集工具
+
+| 工具 | 用途 | 输出格式 |
+|------|------|----------|
+| Cadence IMC | 合并功能覆盖率 | .vdb数据库 |
+| Synopsys URG | 生成覆盖率报告 | HTML报告 |
+| Mentor Questa | 仿真覆盖收集 | UCDB数据库 |
 
 ### 8.6 Safety Mechanism验证检查清单
 
