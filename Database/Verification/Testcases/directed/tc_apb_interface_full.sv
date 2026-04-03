@@ -4,7 +4,7 @@
 // Target: apb_if.v (IDLE 44-48, SETUP 50-53, ACCESS 55-59)
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_apb_interface_full;
     

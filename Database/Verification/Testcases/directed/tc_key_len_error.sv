@@ -4,7 +4,7 @@
 //              Covers ECB-005 requirement
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_key_len_error;
     

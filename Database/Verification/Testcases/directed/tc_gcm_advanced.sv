@@ -6,7 +6,7 @@
 // Reference: Verification_Plan.md Section 2.2.4
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_gcm_advanced;
     

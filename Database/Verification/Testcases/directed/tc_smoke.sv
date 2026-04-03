@@ -3,7 +3,7 @@
 // Description: Smoke test - basic sanity check
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_smoke;
     

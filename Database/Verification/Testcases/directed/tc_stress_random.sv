@@ -5,7 +5,7 @@
 // Coverage Target: Stress coverage, timing coverage, throughput
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_stress_random;
     

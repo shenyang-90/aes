@@ -3,7 +3,7 @@
 // Description: Test interrupt enable/disable handling
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_error_interrupt;
     tb_base tb();

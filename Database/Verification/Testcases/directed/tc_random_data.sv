@@ -5,7 +5,7 @@
 // Coverage Target: Data path coverage, state coverage
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_random_data;
     

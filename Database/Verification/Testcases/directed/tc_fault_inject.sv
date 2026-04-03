@@ -5,7 +5,7 @@
 // Note: Tests fault detection mechanisms in AES IP
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_fault_inject;
     

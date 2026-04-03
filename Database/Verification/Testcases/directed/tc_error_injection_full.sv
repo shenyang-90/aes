@@ -4,7 +4,7 @@
 // Target: Error paths in all modules
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_error_injection_full;
     

@@ -4,7 +4,7 @@
 // Target: xts_engine.v (CALC_T0 93-115, PROC 116-155, NEXT_T 156-184)
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_xts_tweak_full;
     

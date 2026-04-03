@@ -4,7 +4,7 @@
 // Target: sbox_masked.v (TI pipeline 185-337, DOM 264-300)
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_sbox_masked_full;
     

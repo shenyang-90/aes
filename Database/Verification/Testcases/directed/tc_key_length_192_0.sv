@@ -3,7 +3,7 @@
 // Description: AES-192 Vector 0 (FIPS-197 standard test vector)
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_key_length_192_0;
     tb_base tb();

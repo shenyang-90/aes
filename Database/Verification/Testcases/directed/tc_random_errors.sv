@@ -5,7 +5,7 @@
 // Coverage Target: Error handling, status register, interrupt paths
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_random_errors;
     

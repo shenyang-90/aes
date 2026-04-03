@@ -3,7 +3,7 @@
 // Description: AES-192 Vector 2 (all zeros key)
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_key_length_192_2;
     tb_base tb();

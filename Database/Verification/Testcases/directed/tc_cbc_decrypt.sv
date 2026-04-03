@@ -4,7 +4,7 @@
 // Coverage: CBC-002 (CBC Decrypt), CBC-003 (IV Correctness) from Verification Plan
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_cbc_decrypt;
     

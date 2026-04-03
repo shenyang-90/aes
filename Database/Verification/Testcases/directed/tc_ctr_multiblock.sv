@@ -3,7 +3,7 @@
 // Description: CTR mode multi-block with counter increment verification
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_ctr_multiblock;
     

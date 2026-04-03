@@ -4,7 +4,7 @@
 //              Verifies functional correctness against unmasked S-Box
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_sbox_masked;
     

@@ -4,7 +4,7 @@
 // Coverage: CTR-002 (Counter Increment), CTR-003 (Counter Overflow) from Verification Plan
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_ctr_counter;
     

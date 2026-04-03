@@ -5,7 +5,7 @@
 // Note: Simplified GCM test - full GHASH verification requires additional logic
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_gcm_basic;
     

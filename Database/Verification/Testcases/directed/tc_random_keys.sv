@@ -5,7 +5,7 @@
 // Coverage Target: Key path coverage, key schedule coverage
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_random_keys;
     

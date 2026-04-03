@@ -6,7 +6,7 @@
 // Reference: Verification_Plan.md Section 4.3, 8.2
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_error_recovery;
     

@@ -6,7 +6,7 @@
 // Reference: Verification_Plan.md Section 2.3
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_cts_full_boundary;
     

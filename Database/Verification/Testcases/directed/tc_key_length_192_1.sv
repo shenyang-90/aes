@@ -3,7 +3,7 @@
 // Description: AES-192 Vector 1
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_key_length_192_1;
     tb_base tb();

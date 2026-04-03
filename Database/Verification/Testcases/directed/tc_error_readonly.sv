@@ -3,7 +3,7 @@
 // Description: Test read-only register behavior
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_error_readonly;
     tb_base tb();

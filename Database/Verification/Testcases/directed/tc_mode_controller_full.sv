@@ -4,7 +4,7 @@
 // Target: mode_controller.v (PREPARE 128-164, POST_PROC 174-216)
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_mode_controller_full;
     

@@ -5,7 +5,7 @@
 // Coverage Target: Cross coverage of modes x key_lengths x operations
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_random_modes;
     

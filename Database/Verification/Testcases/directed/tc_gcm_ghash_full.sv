@@ -4,7 +4,7 @@
 // Target: gcm_engine.v (GHASH_IDLE 91-95, CALC_H 96-115, PROC_AAD 116-145, PROC_CT 146-165)
 //============================================================================
 
-`include "../../Env/tb/tb_base.sv"
+`include "Env/tb/tb_base.sv"
 
 module tc_gcm_ghash_full;
     
