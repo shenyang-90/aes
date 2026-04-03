@@ -56,7 +56,7 @@ module tc_safety_interrupt;
         
         while (!interrupt_asserted && timeout < expected_cycles) begin
             @(posedge tb.clk);
-            int_status_bit = tb.dut.aes_top.int_status_reg[int_bit];
+            int_status_bit = tb.dut.int_status_reg[int_bit];
             interrupt_asserted = tb.dut.aes_top.int_error || tb.dut.aes_top.int_done;
             
             // Check specific interrupt status
@@ -78,7 +78,7 @@ module tc_safety_interrupt;
     endtask
     
     // Task: Clear interrupt
-    task automatic clear_interrupt(input int int_bit);
+    task clear_interrupt(input int int_bit);
         logic [31:0] w1c_value;
         w1c_value = 32'h0;
         w1c_value[int_bit] = 1'b1;
@@ -87,7 +87,7 @@ module tc_safety_interrupt;
     endtask
     
     // Task: Check interrupt cleared
-    task automatic check_interrupt_cleared(
+    task check_interrupt_cleared(
         input string test_id,
         input int int_bit,
         input string int_name
@@ -109,25 +109,30 @@ module tc_safety_interrupt;
     endtask
     
     // Task: Read INT_STATUS register
-    task automatic read_int_status(output logic [31:0] status_val);
+    task read_int_status;
+        logic [31:0] status_val;
+        tb.apb_read(INT_STATUS_ADDR, status_val);
+    endtask
+    
+    task get_int_status(output logic [31:0] status_val);
         tb.apb_read(INT_STATUS_ADDR, status_val);
     endtask
     
     // Task: Trigger fault_detected
-    task automatic trigger_fault_detected();
+    task trigger_fault_detected;
         $display("[INFO] Triggering fault_detected via result mismatch");
         tb.force_signal("result_a", 128'h12345678_9ABCDEF0_12345678_9ABCDEF0);
         tb.force_signal("result_b", 128'hFEDCBA09_76543210_FEDCBA09_76543210);
     endtask
     
     // Task: Trigger CRC error
-    task automatic trigger_crc_error();
+    task trigger_crc_error;
         $display("[INFO] Triggering CRC error");
         tb.force_signal("crc_valid", 1'b0);
     endtask
     
     // Task: Release forced signals
-    task automatic release_faults();
+    task release_faults;
         tb.release_signal("result_a");
         tb.release_signal("result_b");
         tb.release_signal("crc_valid");
@@ -309,7 +314,7 @@ module tc_safety_interrupt;
         check_interrupt("SM-MULTI-001", INT_FAULT_BIT, "FAULT", 5);
         
         // Check FAULT bit is set
-        read_int_status(int_status_val);
+        get_int_status(int_status_val);
         $display("[INFO] INT_STATUS register: 0x%08H", int_status_val);
         $display("[INFO] FAULT_STATUS (bit 2): %0b", int_status_val[INT_FAULT_BIT]);
         
@@ -338,7 +343,7 @@ module tc_safety_interrupt;
         
         // Check both STATUS[4] and INT_STATUS[2]
         tb.apb_read(STATUS_ADDR, status_reg);
-        read_int_status(int_status_val);
+        get_int_status(int_status_val);
         
         if (status_reg[STATUS_FAULT_DETECTED_BIT] && int_status_val[INT_FAULT_BIT]) begin
             $display("[PASS] SM-INTEG-001: Both STATUS[4] and INT_STATUS[2] set on fault");

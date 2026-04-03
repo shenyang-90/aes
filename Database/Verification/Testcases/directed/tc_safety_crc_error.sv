@@ -63,8 +63,9 @@ module tc_safety_crc_error;
         
         while (!crc_error && !fault_detected && timeout < expected_cycles) begin
             @(posedge tb.clk);
-            crc_error = !tb.dut.crc_checker.crc_valid;
-            fault_detected = tb.dut.fault_detector.fault_detected;
+            // Note: Hierarchical access to internal signals
+            crc_error = !tb.dut.crc_valid;
+            fault_detected = tb.dut.gen_lockstep.u_fault_detector.fault_detected;
             timeout++;
         end
         
@@ -140,7 +141,7 @@ module tc_safety_crc_error;
     endtask
     
     // Task: Read and display STATUS register
-    task automatic read_status();
+    task read_status;
         logic [31:0] status_reg;
         tb.apb_read(STATUS_ADDR, status_reg);
         $display("[INFO] STATUS register: 0x%08H", status_reg);
@@ -293,17 +294,20 @@ module tc_safety_crc_error;
         
         // Test SM-021~025: Single bit flips in data_in
         $display("\n--- Test SM-021~025: data_in single bit flips ---");
-        for (int bit = 0; bit < 128; bit += 32) begin
-            $display("Testing data_in[%0d]...", bit);
-            data_orig = 128'hA5A5A5A5_5A5A5A5A_A5A5A5A5_5A5A5A5A;
-            data_flip = data_orig;
-            data_flip[bit] = ~data_orig[bit];
-            tb.force_signal("data_in", data_flip);
-            check_crc_error($sformatf("SM-%0d", 21 + bit/32));
-            check_status_bits($sformatf("SM-%0dB", 21 + bit/32));
-            tb.release_signal("data_in");
-            tb.reset_dut();
-            tb.apb_write(INT_EN_ADDR, 32'h00000004);
+        begin
+            int bit_pos;
+            for (bit_pos = 0; bit_pos < 128; bit_pos += 32) begin
+                $display("Testing data_in[%0d]...", bit_pos);
+                data_orig = 128'hA5A5A5A5_5A5A5A5A_A5A5A5A5_5A5A5A5A;
+                data_flip = data_orig;
+                data_flip[bit_pos] = ~data_orig[bit_pos];
+                tb.force_signal("data_in", data_flip);
+                check_crc_error("SM-021");
+                check_status_bits("SM-021B");
+                tb.release_signal("data_in");
+                tb.reset_dut();
+                tb.apb_write(INT_EN_ADDR, 32'h00000004);
+            end
         end
         
         // Test SM-026~029: Multi-bit flips in data_in

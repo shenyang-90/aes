@@ -50,7 +50,7 @@ module tc_safety_fsm_timeout;
     localparam logic [3:0] ERROR       = 4'd10;
     
     // Task: Force FSM state
-    task automatic force_fsm_state(
+    task force_fsm_state(
         input logic [3:0] state_value,
         input string state_name
     );
@@ -59,12 +59,18 @@ module tc_safety_fsm_timeout;
     endtask
     
     // Task: Read STATUS register
-    task automatic read_status(output logic [31:0] status_val);
+    task read_status;
+        logic [31:0] status_val;
+        tb.apb_read(STATUS_ADDR, status_val);
+    endtask
+    
+    // Helper task to get status value
+    task get_status(output logic [31:0] status_val);
         tb.apb_read(STATUS_ADDR, status_val);
     endtask
     
     // Task: Check timeout detection via STATUS[6] TIMEOUT_ERR
-    task automatic check_timeout_err(
+    task check_timeout_err(
         input string test_id,
         input int timeout_cycles = 100
     );
@@ -77,7 +83,7 @@ module tc_safety_fsm_timeout;
         
         while (!timeout_err && cycle_count < timeout_cycles) begin
             @(posedge tb.clk);
-            read_status(status_reg);
+            get_status(status_reg);
             timeout_err = status_reg[STATUS_TIMEOUT_ERR_BIT];
             cycle_count++;
         end
@@ -92,7 +98,7 @@ module tc_safety_fsm_timeout;
     endtask
     
     // Task: Check FAULT_DETECTED via STATUS[4]
-    task automatic check_fault_detected(
+    task check_fault_detected(
         input string test_id,
         input int timeout_cycles = 100
     );
@@ -105,7 +111,7 @@ module tc_safety_fsm_timeout;
         
         while (!fault_detected && cycle_count < timeout_cycles) begin
             @(posedge tb.clk);
-            read_status(status_reg);
+            get_status(status_reg);
             fault_detected = status_reg[STATUS_FAULT_DETECTED_BIT];
             cycle_count++;
         end
@@ -120,7 +126,7 @@ module tc_safety_fsm_timeout;
     endtask
     
     // Task: Check FSM recovery to IDLE
-    task automatic check_fsm_recovery(
+    task check_fsm_recovery(
         input string test_id,
         input int check_cycles = 10
     );
@@ -131,11 +137,13 @@ module tc_safety_fsm_timeout;
         
         while (cycle_count < check_cycles) begin
             @(posedge tb.clk);
-            current_state = tb.dut.aes_controller.state;
+            // Note: Hierarchical access to FSM state
+            // aes_controller is instantiated as u_controller in aes_top
+            current_state = tb.dut.u_controller.state;
             if (current_state === IDLE) begin
                 $display("[PASS] %s: FSM recovered to IDLE after %0d cycles", test_id, cycle_count);
                 pass_count++;
-                return;
+                cycle_count = check_cycles; // Break out of loop
             end
             cycle_count++;
         end
@@ -146,13 +154,13 @@ module tc_safety_fsm_timeout;
     endtask
     
     // Task: Release FSM force
-    task automatic release_fsm();
+    task release_fsm;
         tb.release_signal("aes_controller.state");
         $display("[INFO] Released FSM state force");
     endtask
     
     // Task: Clear FAULT_DETECTED (W1C)
-    task automatic clear_fault_detected();
+    task clear_fault_detected;
         logic [31:0] w1c_value;
         w1c_value = 32'h0;
         w1c_value[STATUS_FAULT_DETECTED_BIT] = 1'b1;
@@ -185,7 +193,7 @@ module tc_safety_fsm_timeout;
         // === STATUS register bit verification ===
         
         $display("\n--- STATUS Register Bit Verification (v1.2) ---");
-        read_status(status_reg);
+        get_status(status_reg);
         $display("[INFO] STATUS register: 0x%08H", status_reg);
         $display("[INFO] STATUS[4] FAULT_DETECTED: %0b", status_reg[STATUS_FAULT_DETECTED_BIT]);
         $display("[INFO] STATUS[6] TIMEOUT_ERR: %0b", status_reg[STATUS_TIMEOUT_ERR_BIT]);
@@ -248,7 +256,7 @@ module tc_safety_fsm_timeout;
         release_fsm();
         
         // Read STATUS and verify FAULT_DETECTED is still set
-        read_status(status_reg);
+        get_status(status_reg);
         if (status_reg[STATUS_FAULT_DETECTED_BIT]) begin
             $display("[PASS] SM-FAULT-001: FAULT_DETECTED remains set (sticky bit)");
             pass_count++;
@@ -259,7 +267,7 @@ module tc_safety_fsm_timeout;
         
         // Clear FAULT_DETECTED
         clear_fault_detected();
-        read_status(status_reg);
+        get_status(status_reg);
         if (!status_reg[STATUS_FAULT_DETECTED_BIT]) begin
             $display("[PASS] SM-FAULT-002: FAULT_DETECTED cleared by W1C");
             pass_count++;
@@ -307,7 +315,7 @@ module tc_safety_fsm_timeout;
         
         // Software error handling flow:
         // 1. Read STATUS to get fault type
-        read_status(status_reg);
+        get_status(status_reg);
         $display("[INFO] Software reads STATUS: 0x%08H", status_reg);
         $display("[INFO] TIMEOUT_ERR=%0b, FAULT_DETECTED=%0b", 
                  status_reg[STATUS_TIMEOUT_ERR_BIT], status_reg[STATUS_FAULT_DETECTED_BIT]);
