@@ -2,8 +2,9 @@
 # Makefile for AES IP Verification
 #============================================================================
 
-# Simulator selection
-SIM ?= iverilog
+# Simulator selection - Default to Verilator
+SIM ?= verilator
+VERILATOR = /usr/local/bin/verilator
 
 # Directories
 RTL_DIR = ../RTL
@@ -98,7 +99,9 @@ error-tests:
 help:
 	@echo "AES IP Verification Makefile"
 	@echo ""
-	@echo "Usage: make [TEST=test_name] [target]"
+	@echo "Usage: make [TEST=test_name] [SIM=verilator|iverilog] [target]"
+	@echo ""
+	@echo "Default Simulator: Verilator (SIM=verilator)"
 	@echo ""
 	@echo "Tests (TEST=):"
 	@echo "=== Functional Tests ==="
@@ -163,3 +166,40 @@ verilator-report:
 verilator-clean:
 	@echo "Cleaning Verilator build..."
 	$(MAKE) -f Makefile.verilator clean
+
+#==============================================================================
+# Verilator Direct Simulation (Default)
+#==============================================================================
+ifeq ($(SIM),verilator)
+
+VERILATOR_DIR = $(AES_PROJECT_ROOT)/Temp/Verilator
+RTL_ABS_DIR = $(AES_PROJECT_ROOT)/Database/RTL
+ENV_ABS_DIR = $(AES_PROJECT_ROOT)/Database/Verification/Env
+VERILATOR_FLAGS = --cc --trace --timing --coverage-line --coverage-toggle \
+                  --public-flat-rw -Wno-PINMISSING -Wno-WIDTHTRUNC -Wno-WIDTHEXPAND \
+                  -Mdir $(VERILATOR_DIR)/obj_dir -CFLAGS "-std=c++20 -O2" -LDFLAGS "-lpthread"
+
+.PHONY: compile sim view clean
+
+compile:
+	@mkdir -p $(VERILATOR_DIR)
+	@echo "Compiling with Verilator..."
+	$(VERILATOR) $(VERILATOR_FLAGS) --build --exe --top-module tb_coverage \
+		$(RTL_ABS_DIR)/*.v \
+		$(ENV_ABS_DIR)/verilator/tb_coverage.sv \
+		$(ENV_ABS_DIR)/verilator/sim_main.cpp \
+		2>&1 | tee $(VERILATOR_DIR)/compile.log
+
+sim: compile
+	@echo "Running simulation..."
+	cd $(VERILATOR_DIR) && ./obj_dir/Vtb_coverage +trace 2>&1 | tee $(VERILATOR_DIR)/simulation.log
+	@if [ -f $(VERILATOR_DIR)/coverage.dat ]; then \
+		mv $(VERILATOR_DIR)/coverage.dat $(VERILATOR_DIR)/coverage_$(TEST).dat; \
+		$(VERILATOR_COVERAGE) --write-info $(VERILATOR_DIR)/coverage_$(TEST).info $(VERILATOR_DIR)/coverage_$(TEST).dat 2>/dev/null || true; \
+		echo "Coverage: $(VERILATOR_DIR)/coverage_$(TEST).dat"; \
+	fi
+
+view:
+	@echo "Open VCD with: gtkwave $(VERILATOR_DIR)/dump.vcd"
+
+endif

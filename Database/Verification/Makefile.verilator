@@ -21,8 +21,9 @@ REPORT_DIR   = $(ROOT_DIR)/ProjectMgmt/Reviews/IDR
 # Find all RTL files
 RTL_FILES    = $(wildcard $(RTL_DIR)/*.v)
 
-# Verilator settings
+# Verilator settings - Absolute path
 VERILATOR    = /usr/local/bin/verilator
+VERILATOR_COVERAGE = /usr/local/bin/verilator_coverage
 VFLAGS       = --cc --trace --timing \
                --coverage-line \
                --coverage-toggle \
