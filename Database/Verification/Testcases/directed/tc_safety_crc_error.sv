@@ -62,7 +62,7 @@ module tc_safety_crc_error;
         fault_detected = 1'b0;
         
         while (!crc_error && !fault_detected && timeout < expected_cycles) begin
-            @(posedge tb.clk);
+            #10;
             // Note: Hierarchical access to internal signals
             crc_error = !tb.dut.crc_valid;
             fault_detected = tb.dut.gen_lockstep.u_fault_detector.fault_detected;
@@ -93,7 +93,7 @@ module tc_safety_crc_error;
         fault_detected = 1'b0;
         
         while ((!crc_err || !fault_detected) && timeout < expected_cycles) begin
-            @(posedge tb.clk);
+            #10;
             tb.apb_read(STATUS_ADDR, status_reg);
             crc_err = status_reg[STATUS_CRC_ERR_BIT];
             fault_detected = status_reg[STATUS_FAULT_DETECTED_BIT];
@@ -127,7 +127,7 @@ module tc_safety_crc_error;
         int_status = 1'b0;
         
         while (!int_status && timeout < expected_cycles) begin
-            @(posedge tb.clk);
+            #10;
             tb.apb_read(INT_STATUS_ADDR, int_status_reg);
             int_status = int_status_reg[bit_pos];
             timeout++;
@@ -169,9 +169,9 @@ module tc_safety_crc_error;
         tb.init();
         
         // Wait for reset release
-        @(posedge tb.clk);
+        #10;
         wait(tb.rst_n === 1'b1);
-        @(posedge tb.clk);
+        #10;
         
         // Enable FAULT interrupt (bit 2)
         tb.apb_write(INT_EN_ADDR, 32'h00000004);
@@ -364,7 +364,7 @@ module tc_safety_crc_error;
         tb.force_signal("crc_valid", 1'b0);
         
         // Wait for detection
-        repeat(5) @(posedge tb.clk);
+        repeat(5) #10;
         
         // Check STATUS register
         tb.apb_read(STATUS_ADDR, status_reg);

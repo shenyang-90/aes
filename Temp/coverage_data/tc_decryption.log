@@ -1,0 +1,6 @@
+Starting test: tc_decryption
+================================================================================
+AES IP Unified Testbench - tb_top.sv
+================================================================================
+Simulation completed at time 10000000
+Coverage written to coverage.dat

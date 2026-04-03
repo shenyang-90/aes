@@ -4,7 +4,7 @@
 //              Covers FD-001~004 requirements
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_fault_data_corr;
     

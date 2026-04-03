@@ -4,7 +4,7 @@
 //              Covers ECB-004 requirement
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_ecb_multiblock;
     

@@ -4,7 +4,7 @@
 // Target: Edge cases, boundary values
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_boundary_conditions;
     

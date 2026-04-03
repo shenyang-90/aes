@@ -4,7 +4,7 @@
 // Target: fault_detector.v, aes_top lockstep logic
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_fault_injection_full;
     

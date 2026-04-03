@@ -3,7 +3,7 @@
 // Description: Test reserved register addresses (sampled)
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_error_reserved_sampled;
     tb_base tb();

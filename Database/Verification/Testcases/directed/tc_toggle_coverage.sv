@@ -4,7 +4,7 @@
 //              Target: Toggle coverage >85%
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_toggle_coverage;
     

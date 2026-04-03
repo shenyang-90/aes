@@ -4,7 +4,7 @@
 // Target: axi4_stream_if.v (RX 41-59, TX 63-79)
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_axi_stream_flow;
     

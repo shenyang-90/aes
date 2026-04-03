@@ -3,7 +3,7 @@
 // Description: Full register coverage - all addresses, bit fields, and access types
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_register_full;
     

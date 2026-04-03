@@ -5,7 +5,7 @@
 // Note: Reduced loops for Icarus Verilog simulation speed
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_error_handling;
     

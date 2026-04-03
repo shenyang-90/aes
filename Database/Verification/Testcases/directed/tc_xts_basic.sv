@@ -4,7 +4,7 @@
 // Coverage: XTS-001~004 from Verification Plan
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_xts_basic;
     

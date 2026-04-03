@@ -4,7 +4,7 @@
 // Coverage: 1-127 bit data lengths (PAD Q4)
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_cts_boundary;
     
@@ -81,7 +81,7 @@ module tc_cts_boundary;
         // CTS-127bit
         data_bits[10] = 7'd127;
         keys[10] = 256'h0;
-        plaintexts[10] = 128'h00112233445566778899aabbccddeeff00112233445566778899aabbccdd7f;
+        plaintexts[10] = 128'h8899aabbccddeeff0011223344556677;
         expecteds[10] = 128'h0;
         
         // CTS-full

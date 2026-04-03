@@ -4,7 +4,7 @@
 // Target: cts_handler.v (CTS_FSM 50-159, Decrypt 119-149)
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_cts_decrypt_full;
     

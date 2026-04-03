@@ -126,8 +126,9 @@ int main(int argc, char** argv) {
 }
 EOFCPP
     
-    # Clean previous build
-    rm -rf "$TEMP_DIR/obj_dir"
+    # Clean previous build - use unique obj_dir for each testcase
+    OBJ_DIR="$TEMP_DIR/obj_dir_${tc_name}"
+    rm -rf "$OBJ_DIR"
     rm -f "$TEMP_DIR/coverage.dat"
     
     # Compile (from VERIF_DIR so include paths work)
@@ -137,7 +138,9 @@ EOFCPP
         --public-flat-rw \
         -Wno-PINMISSING -Wno-WIDTHTRUNC -Wno-WIDTHEXPAND \
         -Wno-LATCH -Wno-CASEINCOMPLETE \
-        -Mdir "$TEMP_DIR/obj_dir" \
+        -I"$TC_DIR" \
+        -I"Env/tb" \
+        -Mdir "$OBJ_DIR" \
         -CFLAGS "-std=c++20 -O2" \
         -LDFLAGS "-lpthread" \
         --build --exe \
@@ -158,7 +161,7 @@ EOFCPP
     export VERILATOR_THREADS=1
     unset VERILATOR_ROOT
     
-    if timeout 120 "$TEMP_DIR/obj_dir/V${tc_name}" \
+    if timeout 120 "$OBJ_DIR/V${tc_name}" \
         > "$LOG_DIR/${tc_name}.log" 2>&1; then
         
         # Check coverage data generated (in current dir which is VERIF_DIR)

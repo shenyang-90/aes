@@ -68,7 +68,7 @@ module tc_safety_dual_rail;
         // Note: Force on hierarchical paths not well supported in Icarus
         // We check fault detector signal accessibility at compile time
         // Actual fault injection would require RTL modifications or other simulators
-        @(posedge tb.clk);
+        #10;
         
         // Mark as passed with note about simulator limitation
         $display("[INFO] %s: Fault injection requires force on hierarchical paths", test_id);
@@ -90,7 +90,7 @@ module tc_safety_dual_rail;
         fault_detected_bit = 1'b0;
         
         while (!fault_detected_bit && timeout < expected_cycles) begin
-            @(posedge tb.clk);
+            #10;
             tb.apb_read(STATUS_ADDR, status_reg);
             fault_detected_bit = status_reg[STATUS_FAULT_DETECTED_BIT];
             timeout++;
@@ -142,9 +142,9 @@ module tc_safety_dual_rail;
         tb.init();
         
         // Wait for reset release
-        @(posedge tb.clk);
+        #10;
         wait(tb.rst_n === 1'b1);
-        @(posedge tb.clk);
+        #10;
         
         // === DUAL_RAIL_EN Runtime Control Tests (NEW in v1.2) ===
         

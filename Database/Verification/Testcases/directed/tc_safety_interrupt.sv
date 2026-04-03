@@ -55,9 +55,9 @@ module tc_safety_interrupt;
         interrupt_asserted = 1'b0;
         
         while (!interrupt_asserted && timeout < expected_cycles) begin
-            @(posedge tb.clk);
+            #10;
             int_status_bit = tb.dut.int_status_reg[int_bit];
-            interrupt_asserted = tb.dut.aes_top.int_error || tb.dut.aes_top.int_done;
+            interrupt_asserted = tb.dut.int_error || tb.dut.int_done;
             
             // Check specific interrupt status
             if (int_status_bit) begin
@@ -94,8 +94,8 @@ module tc_safety_interrupt;
     );
         logic int_status_bit;
         
-        @(posedge tb.clk);
-        int_status_bit = tb.dut.aes_top.int_status_reg[int_bit];
+        #10;
+        int_status_bit = tb.dut.int_status_reg[int_bit];
         
         if (!int_status_bit) begin
             $display("[PASS] %s: %s interrupt (bit %0d) cleared correctly", 
@@ -154,9 +154,9 @@ module tc_safety_interrupt;
         tb.init();
         
         // Wait for reset release
-        @(posedge tb.clk);
+        #10;
         wait(tb.rst_n === 1'b1);
-        @(posedge tb.clk);
+        #10;
         
         // Verify INT_EN register default value
         $display("\n--- Register Check: INT_EN default value ---");
@@ -271,11 +271,11 @@ module tc_safety_interrupt;
         $display("\n--- Test: Interrupt masking ---");
         enable_interrupts(32'h00000000); // Disable all interrupts
         trigger_fault_detected();
-        @(posedge tb.clk);
-        @(posedge tb.clk);
-        @(posedge tb.clk);
+        #10;
+        #10;
+        #10;
         
-        if (!tb.dut.aes_top.int_error) begin
+        if (!tb.dut.int_error) begin
             $display("[PASS] SM-MASK-001: Interrupt correctly masked");
             pass_count++;
         end else begin
@@ -339,7 +339,7 @@ module tc_safety_interrupt;
         trigger_fault_detected();
         
         // Wait for interrupt
-        repeat(5) @(posedge tb.clk);
+        repeat(5) #10;
         
         // Check both STATUS[4] and INT_STATUS[2]
         tb.apb_read(STATUS_ADDR, status_reg);

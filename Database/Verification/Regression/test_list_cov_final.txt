@@ -96,3 +96,29 @@ Testcases/directed/tc_aes_core_direct.sv
 # ===========================================
 Testcases/directed/tc_cts_boundary.sv
 Testcases/directed/tc_cts_decrypt_full.sv
+
+# ===========================================
+# Coverage Enhancement Tests (12 tests)
+# Covergroup-driven testcases
+# ===========================================
+Testcases/directed/tc_mode_key_cross.sv
+Testcases/directed/tc_cts_cover_all_bits.sv
+Testcases/directed/tc_safety_mechanism_cov.sv
+Testcases/directed/tc_encrypt_decrypt_all_modes.sv
+Testcases/directed/tc_key_length_all_modes.sv
+Testcases/directed/tc_multiblock_all_modes.sv
+Testcases/directed/tc_interrupt_all_sources.sv
+Testcases/directed/tc_register_access_all.sv
+Testcases/directed/tc_reset_scenarios.sv
+Testcases/directed/tc_back_to_back_ops.sv
+
+Testcases/directed/tc_fault_injection_all.sv
+
+# ===========================================
+# BIST Tests (5 tests) - RTL Implementation
+# ===========================================
+Testcases/directed/tc_bist_basic.sv
+Testcases/directed/tc_bist_power_on.sv
+Testcases/directed/tc_bist_periodic.sv
+Testcases/directed/tc_bist_on_demand.sv
+Testcases/directed/tc_bist_all_tests.sv

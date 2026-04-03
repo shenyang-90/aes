@@ -6,7 +6,7 @@
 // Reference: Verification_Plan.md Section 4.3, 8.2
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_error_recovery;
     
@@ -48,7 +48,7 @@ module tc_error_recovery;
     task clear_error;
         begin
             tb.apb_write(REG_STATUS, 32'h4);  // Write 1 to bit 2 (clear fault)
-            repeat(10) @(posedge tb.clk);
+            repeat(10) #10;
         end
     endtask
     
@@ -75,7 +75,7 @@ module tc_error_recovery;
         begin
             // Configure with invalid mode value
             tb.apb_write(REG_CTRL, 32'h00000071);  // Start with invalid mode
-            repeat(20) @(posedge tb.clk);
+            repeat(20) #10;
         end
     endtask
     
@@ -83,7 +83,7 @@ module tc_error_recovery;
     task soft_reset;
         begin
             tb.apb_write(REG_CTRL, 32'h00000002);  // Soft reset bit
-            repeat(50) @(posedge tb.clk);
+            repeat(50) #10;
         end
     endtask
     
@@ -97,15 +97,15 @@ module tc_error_recovery;
         begin
             done = 0;
             timeout = 0;
-            for (i = 0; i < timeout_cycles; i = i + 1) begin
+            for (i = 0; i < timeout_cycles && !done; i = i + 1) begin
                 tb.apb_read(REG_STATUS, rdata);
                 if (rdata[0]) begin  // Done bit
                     done = 1;
-                    disable wait_for_done_with_timeout;
+                end else begin
+                    #10;
                 end
-                @(posedge tb.clk);
             end
-            timeout = 1;
+            if (!done) timeout = 1;
         end
     endtask
 
@@ -153,7 +153,7 @@ module tc_error_recovery;
             
             // Trigger an error condition (invalid configuration)
             tb.apb_write(REG_CTRL, 32'hFFFFFFFF);  // Invalid control value
-            repeat(30) @(posedge tb.clk);
+            repeat(30) #10;
             
             check_error_state(in_error);
             if (in_error) begin
@@ -166,7 +166,7 @@ module tc_error_recovery;
             
             // Reset to clean state
             tb.reset_dut;
-            repeat(50) @(posedge tb.clk);
+            repeat(50) #10;
         end
 
         //====================================================================
@@ -225,7 +225,7 @@ module tc_error_recovery;
         begin
             // Perform hard reset
             tb.reset_dut;
-            repeat(100) @(posedge tb.clk);
+            repeat(100) #10;
             
             // Verify operation after hard reset
             key = 256'h000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F;
@@ -246,7 +246,7 @@ module tc_error_recovery;
             
             // Enable error interrupt
             tb.apb_write(REG_INT_EN, 32'hFFFFFFFF);  // Enable all interrupts
-            repeat(10) @(posedge tb.clk);
+            repeat(10) #10;
             
             tb.apb_read(REG_INT_EN, int_en);
             $display("  INT_EN: %h", int_en);
@@ -257,7 +257,7 @@ module tc_error_recovery;
             
             // Disable interrupts
             tb.apb_write(REG_INT_EN, 32'h0);
-            repeat(10) @(posedge tb.clk);
+            repeat(10) #10;
             
             $display("  [PASS] Interrupt handling tested");
             pass_cnt = pass_cnt + 1;
@@ -274,7 +274,7 @@ module tc_error_recovery;
             for (i = 0; i < 3; i = i + 1) begin
                 // Trigger some condition
                 tb.apb_write(REG_CTRL, 32'hFFFFFFFF);
-                repeat(20) @(posedge tb.clk);
+                repeat(20) #10;
                 
                 // Clear and recover
                 clear_error;
@@ -297,9 +297,9 @@ module tc_error_recovery;
             
             // First, trigger and recover from error
             tb.apb_write(REG_CTRL, 32'hFFFFFFFF);
-            repeat(30) @(posedge tb.clk);
+            repeat(30) #10;
             soft_reset;
-            repeat(50) @(posedge tb.clk);
+            repeat(50) #10;
             
             // Now perform full encrypt/decrypt
             key = 256'h000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F;
@@ -307,7 +307,7 @@ module tc_error_recovery;
             
             // Encrypt
             tb.aes_op(3'd0, 2'd0, 1'b1, key, 128'h0, pt, ct);
-            repeat(50) @(posedge tb.clk);
+            repeat(50) #10;
             
             // Decrypt
             tb.aes_op(3'd0, 2'd0, 1'b0, key, 128'h0, ct, dt);

@@ -4,7 +4,7 @@
 // Target: All safety features
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_safety_mechanisms_full;
     

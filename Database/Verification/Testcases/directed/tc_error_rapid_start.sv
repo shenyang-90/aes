@@ -3,7 +3,7 @@
 // Description: Test rapid start/stop sequences
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_error_rapid_start;
     tb_base tb();

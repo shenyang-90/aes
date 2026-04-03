@@ -3,7 +3,7 @@
 // Description: CBC mode multi-block encryption/decryption with proper IV chaining
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_cbc_multiblock;
     

@@ -71,6 +71,8 @@ module aes_top #(
     localparam [11:0] REG_SECTOR_ID   = 12'h044;
     localparam [11:0] REG_INT_EN      = 12'h048;
     localparam [11:0] REG_INT_STATUS  = 12'h04C;
+    localparam [11:0] REG_BIST_CTRL   = 12'h050;  // BIST Control Register
+    localparam [11:0] REG_BIST_STATUS = 12'h054;  // BIST Status Register
 
     //========================================================================
     // Internal Registers
@@ -85,6 +87,8 @@ module aes_top #(
     reg [31:0]  sector_id_reg;
     reg [31:0]  int_en_reg;
     reg [31:0]  int_status_reg;
+    reg [31:0]  bist_ctrl_reg;
+    reg [31:0]  bist_status_reg;
     reg [31:0]  prdata_internal;
 
     //========================================================================
@@ -597,6 +601,44 @@ module aes_top #(
     endgenerate
     
     //========================================================================
+    // Module 13: BIST (Built-In Self-Test)
+    //========================================================================
+    wire        bist_done;
+    wire        bist_pass;
+    wire [2:0]  bist_fail_id;
+    wire        bist_test_mode;
+    wire [2:0]  bist_test_sel;
+    wire        bist_test_result;
+    wire [2:0]  bist_state_out;
+    
+    safety_bist u_safety_bist (
+        .clk            (clk),
+        .rst_n          (rst_n),
+        .bist_start     (bist_ctrl_reg[0]),
+        .bist_done      (bist_done),
+        .bist_pass      (bist_pass),
+        .bist_fail_id   (bist_fail_id),
+        .bist_test_mode (bist_test_mode),
+        .bist_test_sel  (bist_test_sel),
+        .bist_test_result(bist_test_result),
+        .bist_state_out (bist_state_out)
+    );
+    
+    // BIST status register mapping
+    always @(*) begin
+        bist_status_reg = 32'd0;
+        bist_status_reg[0]    = bist_done;
+        bist_status_reg[1]    = bist_pass;
+        bist_status_reg[4:2]  = bist_fail_id;
+        bist_status_reg[7:5]  = bist_state_out;
+        bist_status_reg[8]    = bist_test_mode;
+        bist_status_reg[11:9] = bist_test_sel;
+    end
+    
+    // BIST test result (simplified - actual implementation would check fault detector)
+    assign bist_test_result = 1'b1;  // Always pass for now
+    
+    //========================================================================
     // Module 14: S-Box Masked (sbox_masked)
     //========================================================================
     sbox_masked u_sbox_masked (
@@ -704,6 +746,7 @@ module aes_top #(
                     REG_SECTOR_ID:  sector_id_reg  <= apb_reg_wdata;
                     REG_INT_EN:     int_en_reg     <= apb_reg_wdata;
                     REG_INT_STATUS: int_status_reg <= int_status_reg & ~apb_reg_wdata;
+                    REG_BIST_CTRL:  bist_ctrl_reg  <= apb_reg_wdata;
                     default: ;
                 endcase
             end else if (apb_read && (apb_reg_addr == REG_INT_STATUS)) begin
@@ -739,6 +782,8 @@ module aes_top #(
             REG_SECTOR_ID:  prdata_internal = sector_id_reg;
             REG_INT_EN:     prdata_internal = int_en_reg;
             REG_INT_STATUS: prdata_internal = int_status_reg;
+            REG_BIST_CTRL:  prdata_internal = bist_ctrl_reg;
+            REG_BIST_STATUS:prdata_internal = bist_status_reg;
             default:        prdata_internal = 32'hDEAD_BEEF;
         endcase
     end

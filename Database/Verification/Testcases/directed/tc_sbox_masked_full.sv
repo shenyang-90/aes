@@ -4,7 +4,7 @@
 // Target: sbox_masked.v (TI pipeline 185-337, DOM 264-300)
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_sbox_masked_full;
     
@@ -39,10 +39,16 @@ module tc_sbox_masked_full;
         // Test 2: All byte values through S-Box
         $display("\n[TEST 2] All byte values (0-255)");
         for (i = 0; i < 256; i = i + 16) begin
-            plaintext = {i[7:0], (i+1)[7:0], (i+2)[7:0], (i+3)[7:0],
-                         (i+4)[7:0], (i+5)[7:0], (i+6)[7:0], (i+7)[7:0],
-                         (i+8)[7:0], (i+9)[7:0], (i+10)[7:0], (i+11)[7:0],
-                         (i+12)[7:0], (i+13)[7:0], (i+14)[7:0], (i+15)[7:0]};
+            begin : gen_plain
+                reg [7:0] b0, b1, b2, b3, b4, b5, b6, b7;
+                reg [7:0] b8, b9, b10, b11, b12, b13, b14, b15;
+                b0 = i[7:0]; b1 = (i+1); b2 = (i+2); b3 = (i+3);
+                b4 = (i+4); b5 = (i+5); b6 = (i+6); b7 = (i+7);
+                b8 = (i+8); b9 = (i+9); b10 = (i+10); b11 = (i+11);
+                b12 = (i+12); b13 = (i+13); b14 = (i+14); b15 = (i+15);
+                plaintext = {b0, b1, b2, b3, b4, b5, b6, b7,
+                             b8, b9, b10, b11, b12, b13, b14, b15};
+            end
             tb.aes_op(3'd0, 2'd0, 1'b1, key256, iv, plaintext, ciphertext);
         end
         tb.pass_cnt = tb.pass_cnt + 1;

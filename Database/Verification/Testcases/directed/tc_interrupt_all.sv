@@ -3,7 +3,7 @@
 // Description: Complete interrupt controller verification
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_interrupt_all;
     

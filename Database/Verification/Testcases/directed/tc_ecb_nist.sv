@@ -3,7 +3,7 @@
 // Description: NIST SP 800-38A ECB mode test using NIST vectors
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_ecb_nist;
     

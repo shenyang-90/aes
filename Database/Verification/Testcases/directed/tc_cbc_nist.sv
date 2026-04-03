@@ -3,7 +3,7 @@
 // Description: NIST SP 800-38A CBC mode test
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_cbc_nist;
     

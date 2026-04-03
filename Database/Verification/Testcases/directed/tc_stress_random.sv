@@ -5,7 +5,7 @@
 // Coverage Target: Stress coverage, timing coverage, throughput
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_stress_random;
     
@@ -13,7 +13,7 @@ module tc_stress_random;
 
     // Test configuration
     localparam NUM_STRESS_OPS = 100;
-    localparam NUM_SEED = 32'hSTRE_5555;
+    localparam NUM_SEED = 32'h5555_5555;
     localparam MIN_BACKOFF = 5;
     localparam MAX_BACKOFF = 20;
     

@@ -3,7 +3,7 @@
 // Description: Test invalid mode selection error handling
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_error_mode_invalid;
     tb_base tb();

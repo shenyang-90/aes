@@ -82,7 +82,7 @@ module tc_safety_fsm_timeout;
         timeout_err = 1'b0;
         
         while (!timeout_err && cycle_count < timeout_cycles) begin
-            @(posedge tb.clk);
+            #10;
             get_status(status_reg);
             timeout_err = status_reg[STATUS_TIMEOUT_ERR_BIT];
             cycle_count++;
@@ -110,7 +110,7 @@ module tc_safety_fsm_timeout;
         fault_detected = 1'b0;
         
         while (!fault_detected && cycle_count < timeout_cycles) begin
-            @(posedge tb.clk);
+            #10;
             get_status(status_reg);
             fault_detected = status_reg[STATUS_FAULT_DETECTED_BIT];
             cycle_count++;
@@ -136,7 +136,7 @@ module tc_safety_fsm_timeout;
         cycle_count = 0;
         
         while (cycle_count < check_cycles) begin
-            @(posedge tb.clk);
+            #10;
             // Note: Hierarchical access to FSM state
             // aes_controller is instantiated as u_controller in aes_top
             current_state = tb.dut.u_controller.state;
@@ -183,9 +183,9 @@ module tc_safety_fsm_timeout;
         tb.init();
         
         // Wait for reset release
-        @(posedge tb.clk);
+        #10;
         wait(tb.rst_n === 1'b1);
-        @(posedge tb.clk);
+        #10;
         
         // Enable FAULT interrupt
         tb.apb_write(INT_EN_ADDR, 32'h00000004); // Enable FAULT_INT (bit 2)

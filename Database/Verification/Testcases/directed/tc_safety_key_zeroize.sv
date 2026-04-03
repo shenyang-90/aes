@@ -50,7 +50,7 @@ module tc_safety_key_zeroize;
         timeout = 0;
         
         while (timeout < expected_cycles) begin
-            @(posedge tb.clk);
+            #10;
             // Note: key_manager module exists but is not instantiated in aes_top
             // Using direct register read instead
             key_out = 256'h0;  // Placeholder - actual key not accessible
@@ -79,7 +79,7 @@ module tc_safety_key_zeroize;
         timeout = 0;
         
         while (timeout < expected_cycles) begin
-            @(posedge tb.clk);
+            #10;
             actual_cipher = tb.dut.m_axis_tdata;
             if (actual_cipher !== expected_cipher && actual_cipher !== 128'h0) begin
                 $display("[PASS] %s: Cipher output changed as expected", test_id);
@@ -120,9 +120,9 @@ module tc_safety_key_zeroize;
         tb.init();
         
         // Wait for reset release
-        @(posedge tb.clk);
+        #10;
         wait(tb.rst_n === 1'b1);
-        @(posedge tb.clk);
+        #10;
         
         // Verify CTRL[9] is DUAL_RAIL_EN (read-only check)
         $display("\n--- Register Definition Check: CTRL[9] = DUAL_RAIL_EN ---");
@@ -196,8 +196,8 @@ module tc_safety_key_zeroize;
         $display("\n--- Test SM-037: key_valid cleared after zeroize ---");
         // tb.load_key - task not available in tb_base(key_orig);
         tb.force_signal("zeroize", 1'b1);
-        @(posedge tb.clk);
-        @(posedge tb.clk);
+        #10;
+        #10;
         // Note: key_manager module not instantiated in aes_top
         $display("[INFO] SM-037: key_manager not instantiated in design");
         $display("[PASS] SM-037: Key zeroize test placeholder");
@@ -219,11 +219,11 @@ module tc_safety_key_zeroize;
         $display("\n--- Test SM-039: Zeroize glitch test ---");
         // tb.load_key - task not available in tb_base(key_orig);
         tb.force_signal("zeroize", 1'b1);
-        @(posedge tb.clk);
+        #10;
         tb.release_signal("zeroize");
-        @(posedge tb.clk);
+        #10;
         tb.force_signal("zeroize", 1'b1);
-        @(posedge tb.clk);
+        #10;
         check_key_zeroized("SM-039");
         tb.release_signal("zeroize");
         tb.reset_dut();
@@ -236,7 +236,7 @@ module tc_safety_key_zeroize;
         $display("\n--- Test SM-040: Zeroize hold time verification ---");
         // tb.load_key - task not available in tb_base(key_orig);
         tb.force_signal("zeroize", 1'b1);
-        repeat(5) @(posedge tb.clk);
+        repeat(5) #10;
         // Note: key_manager module not instantiated in aes_top
         $display("[INFO] SM-040: key_manager not instantiated in design");
         $display("[PASS] SM-040: Key zeroize hold test placeholder");

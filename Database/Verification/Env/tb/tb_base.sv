@@ -5,53 +5,38 @@
 
 `timescale 1ns / 1ps
 
-// Register address definitions (for testcase compatibility)
-`ifndef TB_BASE_SV
-`define TB_BASE_SV
-
-// Control/Status registers
-`define REG_CTRL        12'h000
-`define REG_STATUS      12'h004
-`define REG_KEY_LEN     12'h008
-`define REG_MODE        12'h00C
-
-// Key registers (8 x 32-bit = 256-bit)
-`define REG_KEY_0       12'h010
-`define REG_KEY_1       12'h014
-`define REG_KEY_2       12'h018
-`define REG_KEY_3       12'h01C
-`define REG_KEY_4       12'h020
-`define REG_KEY_5       12'h024
-`define REG_KEY_6       12'h028
-`define REG_KEY_7       12'h02C
-
-// IV registers (4 x 32-bit = 128-bit)
-`define REG_IV_0        12'h030
-`define REG_IV_1        12'h034
-`define REG_IV_2        12'h038
-`define REG_IV_3        12'h03C
-
-// Data input/output
-`define REG_DATA_IN_0   12'h040
-`define REG_DATA_IN_1   12'h044
-`define REG_DATA_IN_2   12'h048
-`define REG_DATA_IN_3   12'h04C
-`define REG_DATA_OUT_0  12'h050
-`define REG_DATA_OUT_1  12'h054
-`define REG_DATA_OUT_2  12'h058
-`define REG_DATA_OUT_3  12'h05C
-
-// Interrupt
-`define REG_INT_STATUS  12'h060
-`define REG_INT_MASK    12'h064
-
-// Safety
-`define REG_FAULT_STATUS 12'h070
-`define REG_CRC_RESULT   12'h074
-
-`endif
-
 module tb_base;
+    // Register address parameters (for testcase compatibility with tb.REG_* syntax)
+    localparam REG_CTRL        = 12'h000;
+    localparam REG_STATUS      = 12'h004;
+    localparam REG_KEY_LEN     = 12'h008;
+    localparam REG_MODE        = 12'h00C;
+    localparam REG_KEY_0       = 12'h010;
+    localparam REG_KEY_1       = 12'h014;
+    localparam REG_KEY_2       = 12'h018;
+    localparam REG_KEY_3       = 12'h01C;
+    localparam REG_KEY_4       = 12'h020;
+    localparam REG_KEY_5       = 12'h024;
+    localparam REG_KEY_6       = 12'h028;
+    localparam REG_KEY_7       = 12'h02C;
+    localparam REG_IV_0        = 12'h030;
+    localparam REG_IV_1        = 12'h034;
+    localparam REG_IV_2        = 12'h038;
+    localparam REG_IV_3        = 12'h03C;
+    localparam REG_DATA_IN_0   = 12'h040;
+    localparam REG_DATA_IN_1   = 12'h044;
+    localparam REG_DATA_IN_2   = 12'h048;
+    localparam REG_DATA_IN_3   = 12'h04C;
+    localparam REG_DATA_OUT_0  = 12'h050;
+    localparam REG_DATA_OUT_1  = 12'h054;
+    localparam REG_DATA_OUT_2  = 12'h058;
+    localparam REG_DATA_OUT_3  = 12'h05C;
+    localparam REG_INT_STATUS  = 12'h060;
+    localparam REG_INT_MASK    = 12'h064;
+    localparam REG_FAULT_STATUS = 12'h070;
+    localparam REG_CRC_RESULT  = 12'h074;
+    localparam REG_BIST_CTRL   = 12'h050;
+    localparam REG_BIST_STATUS = 12'h054;
 
     // Clock and reset
     reg clk = 0;
@@ -148,9 +133,9 @@ module tb_base;
     endtask
 
     // Task: AXI-Stream send
-    task axis_send(input [127:0] data);
+    task axis_send(input [127:0] data, input tlast = 1'b1);
         begin
-            s_axis_tdata = data; s_axis_tvalid = 1; s_axis_tlast = 1;
+            s_axis_tdata = data; s_axis_tvalid = 1; s_axis_tlast = tlast;
             @(posedge clk); while (!s_axis_tready) @(posedge clk);
             s_axis_tvalid = 0; s_axis_tlast = 0;
         end
@@ -209,6 +194,65 @@ module tb_base;
             
             repeat(10) @(posedge clk);
             axis_recv(ciphertext);
+        end
+    endtask
+
+    // Task: Reset DUT
+    task reset_dut;
+        begin
+            rst_n = 0;
+            repeat(20) @(posedge clk);
+            rst_n = 1;
+            repeat(5) @(posedge clk);
+        end
+    endtask
+
+    // Task: Initialize DUT
+    task init;
+        begin
+            paddr = 0; pwrite = 0; pwdata = 0; psel = 0; penable = 0;
+            s_axis_tdata = 0; s_axis_tvalid = 0; s_axis_tlast = 0;
+            pass_cnt = 0; fail_cnt = 0;
+        end
+    endtask
+
+    // Task: Force signal (for fault injection)
+    task force_signal(input string sig_name, input [255:0] value);
+        begin
+            $display("[WARN] force_signal not implemented in base tb");
+        end
+    endtask
+
+    // Task: Release signal
+    task release_signal(input string sig_name);
+        begin
+            $display("[WARN] release_signal not implemented in base tb");
+        end
+    endtask
+
+    // Task: Load key
+    task load_key(input [255:0] key, input [1:0] key_len);
+        begin
+            apb_write(REG_KEY_LEN, {30'd0, key_len});
+            apb_write(REG_KEY_0, key[255:224]);
+            apb_write(REG_KEY_1, key[223:192]);
+            apb_write(REG_KEY_2, key[191:160]);
+            apb_write(REG_KEY_3, key[159:128]);
+            if (key_len > 0) begin
+                apb_write(REG_KEY_4, key[127:96]);
+                apb_write(REG_KEY_5, key[95:64]);
+            end
+            if (key_len > 1) begin
+                apb_write(REG_KEY_6, key[63:32]);
+                apb_write(REG_KEY_7, key[31:0]);
+            end
+        end
+    endtask
+
+    // Task: Start operation
+    task start_operation;
+        begin
+            apb_write(REG_CTRL, 32'h1);
         end
     endtask
 

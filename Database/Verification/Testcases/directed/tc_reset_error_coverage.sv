@@ -4,7 +4,7 @@
 //              Target: Complete FSM and error handling coverage
 //============================================================================
 
-`include "Env/tb/tb_base.sv"
+`include "../../Env/tb/tb_base.sv"
 
 module tc_reset_error_coverage;
     
