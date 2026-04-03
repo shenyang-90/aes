@@ -19,9 +19,11 @@ Database/Verification/out/
 transcript
 nwaveLog/
 
-# Coverage
+# Coverage data files (keep .info for reports)
 *.ucdb
-coverage/
+*.dat
+coverage/*.dat
+Temp/Verilator/coverage/*.dat
 
 # Editor
 *.swp
