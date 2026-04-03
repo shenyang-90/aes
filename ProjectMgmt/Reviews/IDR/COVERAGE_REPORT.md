@@ -62,27 +62,39 @@ sandbox/aes/Temp/Verilator/
 
 ## 3. 覆盖率结果
 
-### 3.1 整体覆盖率
+### 3.1 整体覆盖率 (Updated 2026-04-03)
 
 | 类型 | 覆盖率 | 命中/总数 | 状态 |
 |------|--------|-----------|------|
-| **Line Coverage** | 37.1% | 405 / 1093 | ⚠️ 需要提升 |
+| **Line Coverage** | 36.5% | 404 / 1106 | ⚠️ 需要提升 |
 | **Toggle Coverage** | 部分收集 | - | ⚠️ 需要更多激励 |
 | **FSM Coverage** | 未单独统计 | - | - |
 
+**Note**: 覆盖率基于 tb_coverage.sv 基础测试。运行全部 53 个测试用例将显著提升覆盖率。
+
 ### 3.2 模块级覆盖率
 
-| 模块 | 代码行 | 命中行 | 覆盖率 |
-|------|--------|--------|--------|
-| aes_controller | ~384 | 待详细分析 | - |
-| aes_core | ~339 | 待详细分析 | - |
-| mode_controller | ~229 | 待详细分析 | - |
-| key_schedule | ~384 | 待详细分析 | - |
-| sbox_masked | ~339 | 待详细分析 | - |
-| fault_detector | ~187 | 待详细分析 | - |
-| gcm_engine | ~187 | 待详细分析 | - |
-| xts_engine | ~187 | 待详细分析 | - |
-| cts_handler | ~187 | 待详细分析 | - |
+#### 已覆盖模块 (7个)
+| 模块 | 状态 | 说明 |
+|------|------|------|
+| aes_controller | ✅ | FSM 和控制逻辑 |
+| aes_core | ✅ | 核心加密运算 |
+| aes_top | ✅ | 顶层集成 |
+| crc_checker | ✅ | CRC 校验 |
+| fault_detector | ✅ | 故障检测 |
+| key_manager | ✅ | 密钥管理 |
+| key_schedule | ✅ | 密钥调度 |
+
+#### 未覆盖模块 (7个)
+| 模块 | 状态 | 说明 |
+|------|------|------|
+| apb_if | ⚠️ | APB 接口 - 需要特定测试 |
+| axi4_stream_if | ⚠️ | AXI-Stream 接口 - 需要特定测试 |
+| cts_handler | ⚠️ | CTS 模式 - 需要 tc_cts_full_boundary |
+| gcm_engine | ⚠️ | GCM 模式 - 需要 tc_gcm_advanced |
+| mode_controller | ⚠️ | 模式控制 - 需要多模式测试 |
+| sbox_masked | ⚠️ | S-Box - 需要特定测试 |
+| xts_engine | ⚠️ | XTS 模式 - 需要 tc_xts_multi_sector |
 | crc_checker | ~187 | 待详细分析 | - |
 | key_manager | ~187 | 待详细分析 | - |
 
