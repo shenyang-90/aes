@@ -1,10 +1,11 @@
 //============================================================================
 // Verilator Simulation Main File
-// Description: C++ wrapper for Verilator simulation
+// Description: C++ wrapper for Verilator simulation with coverage support
 //============================================================================
 
 #include <verilated.h>
 #include <verilated_vcd_c.h>
+#include <verilated_cov.h>  // Coverage support
 #include "Vtb_coverage.h"
 #include "Vtb_coverage_tb_coverage.h"
 #include <iostream>
@@ -84,6 +85,11 @@ int main(int argc, char** argv) {
     
     // Final evaluation
     top->final();
+    
+    // Write coverage data using VerilatedCov static method
+    std::cout << "[COVERAGE] Writing coverage data..." << std::endl;
+    VerilatedCov::write("coverage.dat");
+    std::cout << "[COVERAGE] Coverage data written to coverage.dat" << std::endl;
     
     // Close trace
     if (tfp) {

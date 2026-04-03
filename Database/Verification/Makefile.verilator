@@ -1,56 +1,68 @@
 #============================================================================
 # Verilator Makefile for AES IP Coverage Collection
 # Description: Compilation, simulation, and coverage reporting
+# All outputs go to ProjectMgmt/Reviews/IDR directory
 #============================================================================
 
 # Directories
-RTL_DIR      = ../../Database/RTL
-TB_DIR       = ../../Database/Verification/Env/tb
-TC_DIR       = ../../Database/Verification/Testcases/directed
-OUT_DIR      = .
-LOG_DIR      = ./logs
-COV_DIR      = ./coverage
-REPORT_DIR   = ./reports
+ROOT_DIR     = ../..
+RTL_DIR      = $(ROOT_DIR)/Database/RTL
+TB_DIR       = $(ROOT_DIR)/Database/Verification/Env/tb
+TC_DIR       = $(ROOT_DIR)/Database/Verification/Testcases/directed
+ENV_DIR      = $(ROOT_DIR)/Database/Verification/Env
+
+# Output directories - IDR review location
+TEMP_DIR     = $(ROOT_DIR)/Temp/Verilator
+OUT_DIR      = $(TEMP_DIR)
+LOG_DIR      = $(ROOT_DIR)/ProjectMgmt/Reviews/IDR/logs
+COV_DIR      = $(ROOT_DIR)/ProjectMgmt/Reviews/IDR/coverage
+REPORT_DIR   = $(ROOT_DIR)/ProjectMgmt/Reviews/IDR
 
 # Find all RTL files
 RTL_FILES    = $(wildcard $(RTL_DIR)/*.v)
 
 # Verilator settings
-VERILATOR    = verilator
+VERILATOR    = /usr/local/bin/verilator
 VFLAGS       = --cc --trace --timing \
                --coverage-line \
                --coverage-toggle \
                --public-flat-rw \
-               -Wno-WIDTHTRUNC -Wno-WIDTHEXPAND \
+               -Wno-PINMISSING -Wno-WIDTHTRUNC -Wno-WIDTHEXPAND \
                -Mdir $(OUT_DIR)/obj_dir \
                -CFLAGS "-std=c++20 -O2" \
                -LDFLAGS "-lpthread" \
                --build --exe \
                --top-module tb_coverage
 
-# Testcase list
-TESTCASES    = tc_random_modes tc_random_keys tc_random_data \
-               tc_random_errors tc_stress_random
+# Testcase list - New coverage enhancement testcases
+NEW_TESTCASES = tc_cts_full_boundary tc_gcm_advanced tc_xts_multi_sector tc_error_recovery
 
-.PHONY: all compile run coverage report clean clean_all setup run_all
+# All testcases
+TESTCASES    = tc_random_modes tc_random_keys tc_random_data \
+               tc_random_errors tc_stress_random tc_toggle_coverage \
+               tc_corner_cases $(NEW_TESTCASES)
+
+.PHONY: all compile run coverage report clean clean_all setup run_all run_new merge_cov help idr_report
 
 # Default target
-all: setup compile run coverage report
+all: setup compile run coverage idr_report
 
 # Setup directories
 setup:
-	@mkdir -p $(LOG_DIR) $(COV_DIR) $(REPORT_DIR)
+	@mkdir -p $(LOG_DIR) $(COV_DIR) $(REPORT_DIR)/html
+	@mkdir -p $(TEMP_DIR)/obj_dir
 	@echo "[SETUP] Directories created"
+	@echo "[SETUP] IDR Report: $(REPORT_DIR)"
 
-# Compile with Verilator
+# Compile with Verilator using tb_coverage
 compile:
 	@echo "========================================"
 	@echo "Compiling with Verilator..."
 	@echo "========================================"
-	$(VERILATOR) $(VFLAGS) \
+	cd $(TEMP_DIR) && $(VERILATOR) $(VFLAGS) \
 		$(RTL_FILES) \
-		tb_coverage.sv \
-		Env/verilator/sim_main.cpp \
+		$(ENV_DIR)/verilator/tb_coverage.sv \
+		$(ENV_DIR)/verilator/sim_main.cpp \
 		2>&1 | tee $(LOG_DIR)/compile.log
 	@echo "[COMPILE] Done"
 
@@ -59,7 +71,7 @@ run:
 	@echo "========================================"
 	@echo "Running simulation..."
 	@echo "========================================"
-	$(OUT_DIR)/obj_dir/Vtb_coverage \
+	cd $(TEMP_DIR) && $(OUT_DIR)/obj_dir/Vtb_coverage \
 		+trace 2>&1 | tee $(LOG_DIR)/simulation.log
 	@echo "[RUN] Done"
 
@@ -68,44 +80,80 @@ coverage:
 	@echo "========================================"
 	@echo "Collecting coverage..."
 	@echo "========================================"
-	$(VERILATOR)_coverage --write-info $(COV_DIR)/coverage.info \
-		--write $(COV_DIR)/coverage.dat \
-		2>&1 | tee $(LOG_DIR)/coverage.log
-	@echo "[COVERAGE] Done"
+	cd $(TEMP_DIR) && if [ -f coverage.dat ]; then \
+		$(VERILATOR)_coverage --write-info $(COV_DIR)/coverage.info \
+			coverage.dat 2>&1 | tee $(LOG_DIR)/coverage.log; \
+		cp coverage.dat $(COV_DIR)/; \
+		echo "[COVERAGE] Data saved to $(COV_DIR)"; \
+	else \
+		echo "[WARN] No coverage.dat found"; \
+	fi
 
-# Generate HTML report
-report:
+# Generate HTML report and copy to IDR
+idr_report: coverage
 	@echo "========================================"
-	@echo "Generating coverage report..."
+	@echo "Generating IDR coverage report..."
 	@echo "========================================"
 	@if command -v genhtml >/dev/null 2>&1; then \
 		genhtml $(COV_DIR)/coverage.info -o $(REPORT_DIR)/html \
 			--ignore-errors source \
 			2>&1 | tee $(LOG_DIR)/report.log; \
-		echo "[REPORT] HTML report generated in $(REPORT_DIR)/html"; \
+		echo "[REPORT] HTML report: $(REPORT_DIR)/html/index.html"; \
 	else \
 		echo "[WARNING] genhtml not found. Install lcov for HTML reports."; \
-		echo "[INFO] Using coverage.info directly."; \
 	fi
-	@./generate_report.sh
+	@echo "[REPORT] IDR review location: $(REPORT_DIR)/"
+
+# Legacy alias
+report: idr_report
+
+# Run all new coverage enhancement testcases
+run_new: setup
+	@echo "========================================"
+	@echo "Running NEW coverage enhancement tests"
+	@echo "========================================"
+	@for tc in $(NEW_TESTCASES); do \
+		echo ""; \
+		echo "Running $$tc..."; \
+		echo "----------------------------------------"; \
+		cd $(TEMP_DIR) && $(VERILATOR) $(VFLAGS) \
+			$(RTL_FILES) \
+			$(TC_DIR)/$$tc.sv \
+			$(ENV_DIR)/verilator/sim_main.cpp \
+			2>&1 | tee $(LOG_DIR)/$$tc.log || true; \
+		if [ -f "$(TEMP_DIR)/obj_dir/Vtb_coverage" ]; then \
+			cd $(TEMP_DIR) && timeout 180 $(OUT_DIR)/obj_dir/Vtb_coverage +trace 2>&1 | tee -a $(LOG_DIR)/$$tc.log || true; \
+		fi; \
+		if [ -f "$(TEMP_DIR)/coverage.dat" ]; then \
+			mv $(TEMP_DIR)/coverage.dat $(COV_DIR)/$$tc.dat; \
+			$(VERILATOR)_coverage --write-info $(COV_DIR)/$$tc.info $(COV_DIR)/$$tc.dat 2>/dev/null || true; \
+			echo "[OK] Coverage: $(COV_DIR)/$$tc.dat"; \
+		fi; \
+	done
+	@echo "[RUN_NEW] All new testcases completed"
 
 # Run all testcases
 run_all: setup
 	@echo "========================================"
-	@echo "Running all random testcases..."
+	@echo "Running all testcases..."
 	@echo "========================================"
 	@for tc in $(TESTCASES); do \
 		echo ""; \
 		echo "Running $$tc..."; \
 		echo "----------------------------------------"; \
-		$(VERILATOR) $(VFLAGS) \
+		cd $(TEMP_DIR) && $(VERILATOR) $(VFLAGS) \
 			$(RTL_FILES) \
 			$(TC_DIR)/$$tc.sv \
-			Env/verilator/sim_main.cpp \
-			2>&1 | tee $(LOG_DIR)/$$tc.log; \
-		$(OUT_DIR)/obj_dir/Vtb_coverage 2>&1 | tee -a $(LOG_DIR)/$$tc.log; \
-		$(VERILATOR)_coverage --write-info $(COV_DIR)/$$tc.info \
-			--write $(COV_DIR)/$$tc.dat 2>&1 | tee -a $(LOG_DIR)/$$tc.log; \
+			$(ENV_DIR)/verilator/sim_main.cpp \
+			2>&1 | tee $(LOG_DIR)/$$tc.log || true; \
+		if [ -f "$(TEMP_DIR)/obj_dir/Vtb_coverage" ]; then \
+			cd $(TEMP_DIR) && timeout 180 $(OUT_DIR)/obj_DIR/Vtb_coverage +trace 2>&1 | tee -a $(LOG_DIR)/$$tc.log || true; \
+		fi; \
+		if [ -f "$(TEMP_DIR)/coverage.dat" ]; then \
+			mv $(TEMP_DIR)/coverage.dat $(COV_DIR)/$$tc.dat; \
+			$(VERILATOR)_coverage --write-info $(COV_DIR)/$$tc.info $(COV_DIR)/$$tc.dat 2>/dev/null || true; \
+			echo "[OK] Coverage: $(COV_DIR)/$$tc.dat"; \
+		fi; \
 	done
 	@echo "[RUN_ALL] All testcases completed"
 
@@ -114,39 +162,72 @@ merge_cov:
 	@echo "========================================"
 	@echo "Merging coverage data..."
 	@echo "========================================"
-	$(VERILATOR)_coverage --write-info $(COV_DIR)/merged.info \
-		$(COV_DIR)/*.dat \
-		2>&1 | tee $(LOG_DIR)/merge.log
-	@echo "[MERGE] Coverage merged"
+	@if ls $(COV_DIR)/*.dat 1> /dev/null 2>&1; then \
+		$(VERILATOR)_coverage --write-info $(COV_DIR)/merged.info \
+			$(COV_DIR)/*.dat \
+			2>&1 | tee $(LOG_DIR)/merge.log; \
+		echo "[MERGE] Coverage merged to $(COV_DIR)/merged.info"; \
+		genhtml $(COV_DIR)/merged.info -o $(REPORT_DIR)/html_merged \
+			--ignore-errors source 2>&1 | tee -a $(LOG_DIR)/merge.log || true; \
+	else \
+		echo "[WARN] No coverage data files found in $(COV_DIR)"; \
+	fi
+
+# View report
+view_report:
+	@echo "========================================"
+	@echo "Coverage Report Location"
+	@echo "========================================"
+	@echo "IDR Directory: $(REPORT_DIR)/"
+	@echo "HTML Report:   $(REPORT_DIR)/html/index.html"
+	@echo "Coverage Data: $(COV_DIR)/"
+	@echo "Logs:          $(LOG_DIR)/"
+	@if [ -f "$(REPORT_DIR)/html/index.html" ]; then \
+		echo ""; \
+		echo "[OK] Report is ready for IDR review"; \
+	else \
+		echo ""; \
+		echo "[WARN] Report not found. Run 'make idr_report' first."; \
+	fi
 
 # Clean current run
 clean:
 	rm -rf $(OUT_DIR)/obj_dir
-	rm -f *.log *.vcd *.fst
-	rm -f coverage.dat coverage.info
-	rm -f $(COV_DIR)/*.dat $(COV_DIR)/*.info
-	@echo "[CLEAN] Cleaned"
+	rm -f $(TEMP_DIR)/*.log $(TEMP_DIR)/*.vcd $(TEMP_DIR)/*.fst
+	rm -f $(TEMP_DIR)/coverage.dat
+	@echo "[CLEAN] Cleaned $(TEMP_DIR)"
 
-# Clean all including reports
+# Clean all including IDR reports
 clean_all: clean
-	rm -rf $(LOG_DIR)/* $(REPORT_DIR)/* $(COV_DIR)/*
-	@echo "[CLEAN_ALL] All cleaned"
+	rm -rf $(LOG_DIR)/* $(COV_DIR)/*
+	rm -rf $(REPORT_DIR)/html $(REPORT_DIR)/html_merged
+	@echo "[CLEAN_ALL] All cleaned including IDR reports"
 
 # Debug target with verbose output
 debug:
 	@echo "RTL files: $(RTL_FILES)"
+	@echo "TEMP_DIR: $(TEMP_DIR)"
+	@echo "REPORT_DIR: $(REPORT_DIR)"
 	$(VERILATOR) --version
 
 # Help
 help:
+	@echo "========================================"
+	@echo "Verilator Coverage Makefile"
+	@echo "========================================"
+	@echo ""
 	@echo "Available targets:"
-	@echo "  all        - Full flow: compile, run, coverage, report"
-	@echo "  compile    - Compile with Verilator"
-	@echo "  run        - Run simulation"
-	@echo "  coverage   - Collect coverage data"
-	@echo "  report     - Generate HTML report"
-	@echo "  run_all    - Run all random testcases"
-	@echo "  merge_cov  - Merge all coverage data"
-	@echo "  clean      - Clean build artifacts"
-	@echo "  clean_all  - Clean everything"
-	@echo "  help       - Show this help"
+	@echo "  all          - Full flow: compile, run, coverage, idr_report"
+	@echo "  compile      - Compile with Verilator"
+	@echo "  run          - Run simulation"
+	@echo "  coverage     - Collect coverage data"
+	@echo "  idr_report   - Generate HTML report in IDR directory"
+	@echo "  run_new      - Run NEW coverage enhancement testcases"
+	@echo "  run_all      - Run all testcases"
+	@echo "  merge_cov    - Merge all coverage data"
+	@echo "  view_report  - Show report location"
+	@echo "  clean        - Clean build artifacts"
+	@echo "  clean_all    - Clean everything including IDR reports"
+	@echo ""
+	@echo "IDR Output: $(REPORT_DIR)"
+	@echo "New testcases: $(NEW_TESTCASES)"
