@@ -34,6 +34,7 @@ export AES_TEMP_DIR="${AES_PROJECT_ROOT}/Temp"
 export AES_TEMP_VCS="${AES_TEMP_DIR}/VCS"
 export AES_TEMP_VERILATOR="${AES_TEMP_DIR}/Verilator"
 export AES_TEMP_COVERAGE="${AES_TEMP_DIR}/Coverage"
+export AES_WORK="${AES_TEMP_DIR}"
 
 # IDR Review directory
 export AES_IDR_DIR="${AES_PROJECT_ROOT}/ProjectMgmt/Reviews/IDR"
@@ -144,10 +145,14 @@ aes_regression() {
 
 # Collect coverage
 aes_coverage() {
-    local tool="${1:-verilator}"
-    local test="${2:-all}"
-    echo "Collecting coverage with ${tool} for ${test}..."
-    cd "${AES_VERIF_DIR}" && ./Scripts/run_coverage.sh "${tool}" "${test}"
+    echo "Collecting coverage with Verilator..."
+    cd "${AES_VERIF_DIR}/Scripts" && ./collect_coverage.sh
+}
+
+# Quick coverage check
+aes_cov() {
+    echo "Running quick coverage collection..."
+    cd "${AES_VERIF_DIR}/Scripts" && ./collect_coverage.sh 2>&1 | tail -30
 }
 
 # Generate report

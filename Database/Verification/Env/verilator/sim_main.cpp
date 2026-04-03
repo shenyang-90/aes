@@ -1,107 +1,62 @@
-//============================================================================
-// Verilator Simulation Main File
-// Description: C++ wrapper for Verilator simulation with coverage support
-//============================================================================
+// Verilator C++ wrapper for tb_top
+// Unified testbench simulation wrapper
 
 #include <verilated.h>
 #include <verilated_vcd_c.h>
-#include <verilated_cov.h>  // Coverage support
-#include "Vtb_coverage.h"
-#include "Vtb_coverage_tb_coverage.h"
+#include <verilated_cov.h>
+#include "Vtb_top.h"
 #include <iostream>
-#include <cstdlib>
-#include <ctime>
-
-// Simulation time
-vluint64_t main_time = 0;
-
-double sc_time_stamp() {
-    return main_time;
-}
 
 int main(int argc, char** argv) {
     // Initialize Verilator
     Verilated::commandArgs(argc, argv);
     Verilated::traceEverOn(true);
     
-    // Create instance
-    Vtb_coverage* top = new Vtb_coverage;
+    // Create DUT instance
+    Vtb_top* dut = new Vtb_top;
     
-    // Setup tracing
-    VerilatedVcdC* tfp = nullptr;
-    if (argc > 1 && std::string(argv[1]) == "+trace") {
-        tfp = new VerilatedVcdC;
-        top->trace(tfp, 99);
-        tfp->open("waveform.vcd");
+    // Setup VCD tracing
+    VerilatedVcdC* tfp = new VerilatedVcdC;
+    dut->trace(tfp, 99);
+    tfp->open("waveform.vcd");
+    
+    // Get test name from command line
+    std::string testname = "tc_smoke";
+    for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg.find("+TESTCASE=") == 0) {
+            testname = arg.substr(10);
+        }
     }
     
-    // Initialize random seed
-    srand(time(nullptr));
-    
-    std::cout << "========================================" << std::endl;
-    std::cout << "AES IP Verilator Simulation" << std::endl;
-    std::cout << "========================================" << std::endl;
-    
-    // Reset - access signals through tb_coverage
-    top->tb_coverage->rst_n = 0;
-    for (int i = 0; i < 20; i++) {
-        top->tb_coverage->clk = !top->tb_coverage->clk;
-        top->eval();
-        if (tfp) tfp->dump(main_time);
-        main_time++;
-    }
-    
-    top->tb_coverage->rst_n = 1;
-    std::cout << "[SIM] Reset released" << std::endl;
+    VL_PRINTF("[INFO] Starting test: %s\n", testname.c_str());
     
     // Run simulation
-    int max_cycles = 100000;
-    int cycle = 0;
-    bool finished = false;
+    vluint64_t sim_time = 0;
+    vluint64_t max_sim_time = 500000;  // 500K cycles max
     
-    while (cycle < max_cycles && !finished) {
-        // Toggle clock
-        top->tb_coverage->clk = !top->tb_coverage->clk;
-        
-        // Evaluate
-        top->eval();
-        
-        // Dump trace
-        if (tfp) tfp->dump(main_time);
-        
-        // Check for $finish
-        if (Verilated::gotFinish()) {
-            finished = true;
-            std::cout << "[SIM] Simulation finished by $finish" << std::endl;
-        }
-        
-        main_time++;
-        if (top->tb_coverage->clk == 0) cycle++;
+    while (!Verilated::gotFinish() && sim_time < max_sim_time) {
+        dut->eval();
+        tfp->dump(sim_time);
+        sim_time++;
     }
     
-    if (cycle >= max_cycles) {
-        std::cout << "[SIM] Warning: Hit maximum cycle limit" << std::endl;
+    if (sim_time >= max_sim_time) {
+        VL_PRINTF("[WARN] Simulation timeout at time %lu\n", sim_time);
+    } else {
+        VL_PRINTF("[INFO] Simulation completed at time %lu\n", sim_time);
     }
     
-    // Final evaluation
-    top->final();
-    
-    // Write coverage data using VerilatedCov static method
-    std::cout << "[COVERAGE] Writing coverage data..." << std::endl;
+    // Collect coverage
+    VL_PRINTF("[INFO] Writing coverage.dat...\n");
     VerilatedCov::write("coverage.dat");
-    std::cout << "[COVERAGE] Coverage data written to coverage.dat" << std::endl;
-    
-    // Close trace
-    if (tfp) {
-        tfp->close();
-        delete tfp;
-    }
     
     // Cleanup
-    delete top;
+    tfp->close();
+    delete tfp;
+    delete dut;
     
-    std::cout << "[SIM] Simulation complete" << std::endl;
-    std::cout << "Total simulation time: " << main_time << " time units" << std::endl;
+    VL_PRINTF("[DONE] Coverage written\n");
     
     return 0;
 }

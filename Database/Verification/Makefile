@@ -176,7 +176,7 @@ VERILATOR_DIR = $(AES_PROJECT_ROOT)/Temp/Verilator
 RTL_ABS_DIR = $(AES_PROJECT_ROOT)/Database/RTL
 ENV_ABS_DIR = $(AES_PROJECT_ROOT)/Database/Verification/Env
 VERILATOR_FLAGS = --cc --trace --timing --coverage-line --coverage-toggle \
-                  --public-flat-rw -Wno-PINMISSING -Wno-WIDTHTRUNC -Wno-WIDTHEXPAND \
+                  --public-flat-rw -Wno-PINMISSING -Wno-WIDTHTRUNC -Wno-WIDTHEXPAND -Wno-LATCH -Wno-CASEINCOMPLETE \
                   -Mdir $(VERILATOR_DIR)/obj_dir -CFLAGS "-std=c++20 -O2" -LDFLAGS "-lpthread"
 
 .PHONY: compile sim view clean
@@ -187,7 +187,7 @@ compile:
 	$(VERILATOR) $(VERILATOR_FLAGS) --build --exe --top-module tb_coverage \
 		$(RTL_ABS_DIR)/*.v \
 		$(ENV_ABS_DIR)/verilator/tb_coverage.sv \
-		$(ENV_ABS_DIR)/verilator/sim_main.cpp \
+		$(ENV_ABS_DIR)/verilator/sim_main_coverage.cpp \
 		2>&1 | tee $(VERILATOR_DIR)/compile.log
 
 sim: compile

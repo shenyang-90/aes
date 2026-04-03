@@ -31,13 +31,13 @@
             <td class="headerValue">coverage.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">25</td>
+            <td class="headerCovTableEntry">6</td>
             <td class="headerCovTableEntry">172</td>
-            <td class="headerCovTableEntryLo">14.5 %</td>
+            <td class="headerCovTableEntryLo">3.5 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2026-04-03 11:19:33</td>
+            <td class="headerValue">2026-04-03 12:14:49</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">0</td>
@@ -71,23 +71,23 @@
 <a name="9"><span class="lineNum">       9 </span>            : module tb_coverage;</a>
 <a name="10"><span class="lineNum">      10 </span>            : </a>
 <a name="11"><span class="lineNum">      11 </span>            :     // Clock and reset (public for Verilator C++ access)</a>
-<a name="12"><span class="lineNum">      12 </span><span class="lineCov">     100029 :     reg clk /* verilator public */ = 0;</span></a>
+<a name="12"><span class="lineNum">      12 </span><span class="lineCov">          1 :     reg clk /* verilator public */ = 0;</span></a>
 <a name="13"><span class="lineNum">      13 </span><span class="lineCov">          1 :     reg rst_n /* verilator public */ = 0;</span></a>
 <a name="14"><span class="lineNum">      14 </span>            :     </a>
 <a name="15"><span class="lineNum">      15 </span>            :     // APB interface</a>
-<a name="16"><span class="lineNum">      16 </span><span class="lineCov">          1 :     reg [11:0] paddr;</span></a>
-<a name="17"><span class="lineNum">      17 </span><span class="lineCov">          3 :     reg pwrite;</span></a>
+<a name="16"><span class="lineNum">      16 </span><span class="lineNoCov">          0 :     reg [11:0] paddr;</span></a>
+<a name="17"><span class="lineNum">      17 </span><span class="lineNoCov">          0 :     reg pwrite;</span></a>
 <a name="18"><span class="lineNum">      18 </span><span class="lineNoCov">          0 :     reg [31:0] pwdata;</span></a>
 <a name="19"><span class="lineNum">      19 </span><span class="lineNoCov">          0 :     wire [31:0] prdata;</span></a>
-<a name="20"><span class="lineNum">      20 </span><span class="lineCov">          3 :     reg psel;</span></a>
-<a name="21"><span class="lineNum">      21 </span><span class="lineCov">          3 :     reg penable;</span></a>
-<a name="22"><span class="lineNum">      22 </span><span class="lineCov">          3 :     wire pready;</span></a>
+<a name="20"><span class="lineNum">      20 </span><span class="lineNoCov">          0 :     reg psel;</span></a>
+<a name="21"><span class="lineNum">      21 </span><span class="lineNoCov">          0 :     reg penable;</span></a>
+<a name="22"><span class="lineNum">      22 </span><span class="lineNoCov">          0 :     wire pready;</span></a>
 <a name="23"><span class="lineNum">      23 </span><span class="lineNoCov">          0 :     wire pslverr;</span></a>
 <a name="24"><span class="lineNum">      24 </span>            :     </a>
 <a name="25"><span class="lineNum">      25 </span>            :     // AXI-Stream interface (Input)</a>
 <a name="26"><span class="lineNum">      26 </span><span class="lineNoCov">          0 :     reg [127:0] s_axis_tdata;</span></a>
 <a name="27"><span class="lineNum">      27 </span><span class="lineNoCov">          0 :     reg s_axis_tvalid;</span></a>
-<a name="28"><span class="lineNum">      28 </span><span class="lineNoCov">          0 :     wire s_axis_tready;</span></a>
+<a name="28"><span class="lineNum">      28 </span><span class="lineCov">          1 :     wire s_axis_tready;</span></a>
 <a name="29"><span class="lineNum">      29 </span><span class="lineNoCov">          0 :     reg s_axis_tlast;</span></a>
 <a name="30"><span class="lineNum">      30 </span>            :     </a>
 <a name="31"><span class="lineNum">      31 </span>            :     // AXI-Stream interface (Output)</a>
@@ -129,7 +129,7 @@
 <a name="67"><span class="lineNum">      67 </span>            :     );</a>
 <a name="68"><span class="lineNum">      68 </span>            :     </a>
 <a name="69"><span class="lineNum">      69 </span>            :     // Clock generation: 100MHz</a>
-<a name="70"><span class="lineNum">      70 </span><span class="lineCov">         40 :     always #5 clk = ~clk;</span></a>
+<a name="70"><span class="lineNum">      70 </span><span class="lineNoCov">          0 :     always #5 clk = ~clk;</span></a>
 <a name="71"><span class="lineNum">      71 </span>            :     </a>
 <a name="72"><span class="lineNum">      72 </span>            :     // Test counters</a>
 <a name="73"><span class="lineNum">      73 </span><span class="lineCov">          1 :     integer test_count = 0;</span></a>
@@ -137,21 +137,21 @@
 <a name="75"><span class="lineNum">      75 </span><span class="lineCov">          1 :     integer fail_count = 0;</span></a>
 <a name="76"><span class="lineNum">      76 </span>            :     </a>
 <a name="77"><span class="lineNum">      77 </span>            :     // Task: APB write transaction</a>
-<a name="78"><span class="lineNum">      78 </span><span class="lineCov">          3 :     task apb_write(input [11:0] addr, input [31:0] data);</span></a>
-<a name="79"><span class="lineNum">      79 </span><span class="lineCov">          3 :         begin</span></a>
-<a name="80"><span class="lineNum">      80 </span><span class="lineCov">          3 :             @(posedge clk);</span></a>
-<a name="81"><span class="lineNum">      81 </span><span class="lineCov">          3 :             psel = 1;</span></a>
-<a name="82"><span class="lineNum">      82 </span><span class="lineCov">          3 :             pwrite = 1;</span></a>
-<a name="83"><span class="lineNum">      83 </span><span class="lineCov">          3 :             paddr = addr;</span></a>
-<a name="84"><span class="lineNum">      84 </span><span class="lineCov">          3 :             pwdata = data;</span></a>
-<a name="85"><span class="lineNum">      85 </span><span class="lineCov">          3 :             penable = 0;</span></a>
-<a name="86"><span class="lineNum">      86 </span><span class="lineCov">          3 :             @(posedge clk);</span></a>
-<a name="87"><span class="lineNum">      87 </span><span class="lineCov">          3 :             penable = 1;</span></a>
-<a name="88"><span class="lineNum">      88 </span><span class="lineCov">          3 :             @(posedge clk);</span></a>
+<a name="78"><span class="lineNum">      78 </span><span class="lineNoCov">          0 :     task apb_write(input [11:0] addr, input [31:0] data);</span></a>
+<a name="79"><span class="lineNum">      79 </span><span class="lineNoCov">          0 :         begin</span></a>
+<a name="80"><span class="lineNum">      80 </span><span class="lineNoCov">          0 :             @(posedge clk);</span></a>
+<a name="81"><span class="lineNum">      81 </span><span class="lineNoCov">          0 :             psel = 1;</span></a>
+<a name="82"><span class="lineNum">      82 </span><span class="lineNoCov">          0 :             pwrite = 1;</span></a>
+<a name="83"><span class="lineNum">      83 </span><span class="lineNoCov">          0 :             paddr = addr;</span></a>
+<a name="84"><span class="lineNum">      84 </span><span class="lineNoCov">          0 :             pwdata = data;</span></a>
+<a name="85"><span class="lineNum">      85 </span><span class="lineNoCov">          0 :             penable = 0;</span></a>
+<a name="86"><span class="lineNum">      86 </span><span class="lineNoCov">          0 :             @(posedge clk);</span></a>
+<a name="87"><span class="lineNum">      87 </span><span class="lineNoCov">          0 :             penable = 1;</span></a>
+<a name="88"><span class="lineNum">      88 </span><span class="lineNoCov">          0 :             @(posedge clk);</span></a>
 <a name="89"><span class="lineNum">      89 </span><span class="lineNoCov">          0 :             while (!pready) @(posedge clk);</span></a>
-<a name="90"><span class="lineNum">      90 </span><span class="lineCov">          3 :             psel = 0;</span></a>
-<a name="91"><span class="lineNum">      91 </span><span class="lineCov">          3 :             penable = 0;</span></a>
-<a name="92"><span class="lineNum">      92 </span><span class="lineCov">          3 :             pwrite = 0;</span></a>
+<a name="90"><span class="lineNum">      90 </span><span class="lineNoCov">          0 :             psel = 0;</span></a>
+<a name="91"><span class="lineNum">      91 </span><span class="lineNoCov">          0 :             penable = 0;</span></a>
+<a name="92"><span class="lineNum">      92 </span><span class="lineNoCov">          0 :             pwrite = 0;</span></a>
 <a name="93"><span class="lineNum">      93 </span>            :         end</a>
 <a name="94"><span class="lineNum">      94 </span>            :     endtask</a>
 <a name="95"><span class="lineNum">      95 </span>            :     </a>

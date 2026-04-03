@@ -318,9 +318,10 @@ module sbox_masked (
             
             STAGE_OUT: begin
                 // Output shares with remasking
-                y0 = reg0;
-                y1 = reg1;
-                y2 = reg2;
+                // (outputs assigned in sequential block below)
+                next_reg0 = reg0;
+                next_reg1 = reg1;
+                next_reg2 = reg2;
             end
         endcase
     end
