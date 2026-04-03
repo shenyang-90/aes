@@ -237,3 +237,66 @@ This report replaces and consolidates the following historical reports:
 ---
 
 **End of Report**
+
+---
+
+## Current Coverage Analysis (Baseline)
+
+### Coverage Data Source
+Current coverage report is generated from `tb_coverage.sv` baseline testbench.
+
+| Attribute | Value |
+|-----------|-------|
+| **Coverage File** | `Temp/Verilator/coverage.dat` (1.5MB) |
+| **Line Coverage** | 36.5% (404/1106 lines) |
+| **Modules Covered** | 7/14 RTL modules |
+| **Generation Date** | 2026-04-03 |
+
+### Covered Modules (7/14)
+```
+✅ aes_controller.v    - FSM and control
+✅ aes_core.v          - Core encryption
+✅ aes_top.v           - Top integration
+✅ crc_checker.v       - CRC verification
+✅ fault_detector.v    - Fault detection
+✅ key_manager.v       - Key management
+✅ key_schedule.v      - Key expansion
+```
+
+### Pending Modules (7/14)
+```
+⚠️ apb_if.v           - APB interface
+⚠️ axi4_stream_if.v   - AXI-Stream interface
+⚠️ cts_handler.v      - CTS mode (needs tc_cts_full_boundary)
+⚠️ gcm_engine.v       - GCM mode (needs tc_gcm_advanced)
+⚠️ mode_controller.v  - Mode control
+⚠️ sbox_masked.v      - S-Box
+⚠️ xts_engine.v       - XTS mode (needs tc_xts_multi_sector)
+```
+
+### To Achieve Full Coverage (>90%)
+
+Run all 53 testcases and merge coverage:
+
+```bash
+cd Database/Verification
+
+# Method 1: Using Makefile
+make -f Makefile.verilator run_new
+make -f Makefile.verilator merge_cov
+
+# Method 2: Using script (runs all 53 testcases)
+./Scripts/run_all_testcases_coverage.sh
+
+# View merged report
+firefox ../../ProjectMgmt/Reviews/IDR/html/index.html
+```
+
+### Expected Coverage After Full Run
+| Metric | Expected | Current |
+|--------|----------|---------|
+| Line Coverage | >90% | 36.5% |
+| Modules Covered | 14/14 | 7/14 |
+| Testcases Run | 53 | 1 (baseline) |
+
+---

@@ -12,11 +12,11 @@ Database/Verification/
 ├── Makefile.verilator         # Verilator专用Makefile
 ├── README.md                  # 本文档
 │
-├── Scripts/                   # 验证脚本
-│   ├── run_regression.sh
-│   ├── run_coverage.sh
-│   ├── verilator_collect_coverage.sh
-│   └── verilator_generate_report.sh
+├── Scripts/                   # 验证脚本 (4个核心脚本)
+│   ├── setup_env.sh           # 环境设置
+│   ├── run_regression.sh      # 回归测试 (fast/full/coverage)
+│   ├── run_coverage.sh        # 覆盖率收集 (verilator/iverilog)
+│   └── generate_report.sh     # 报告生成
 │
 ├── Env/                       # 验证环境
 │   ├── sva/                   # SystemVerilog断言
@@ -81,6 +81,7 @@ make clean
 | `make coverage` | 收集覆盖率 (Icarus) |
 | `make verilator-cov` | Verilator覆盖率收集 |
 | `make verilator-report` | 生成Verilator报告 |
+| `./Scripts/run_coverage.sh verilator all` | 运行所有测试收集覆盖率 |
 | `make lint` | RTL Lint检查 |
 | `make list-tests` | 列出所有测试 |
 | `make clean` | 清理生成文件 |
@@ -145,12 +146,14 @@ make verilator-report
 
 ### Scripts/
 
-| 脚本 | 用途 |
-|------|------|
-| `run_regression.sh` | 运行完整回归测试 |
-| `run_coverage.sh` | Icarus覆盖率收集 |
-| `verilator_collect_coverage.sh` | Verilator覆盖率收集 |
-| `verilator_generate_report.sh` | Verilator报告生成 |
+| 脚本 | 用途 | 示例 |
+|------|------|------|
+| `setup_env.sh` | 环境检查和设置 | `./Scripts/setup_env.sh` |
+| `run_regression.sh` | 回归测试 | `./Scripts/run_regression.sh fast` |
+| `run_coverage.sh` | 覆盖率收集 | `./Scripts/run_coverage.sh verilator all` |
+| `generate_report.sh` | 报告生成 | `./Scripts/generate_report.sh all` |
+
+**详细文档**: [Scripts/README.md](./Scripts/README.md)
 
 ---
 
@@ -185,18 +188,39 @@ make verilator-report
 - `tc_xts_multi_sector` - XTS 多扇区处理
 - `tc_error_recovery` - 错误状态恢复
 
-### 当前状态
+### 当前状态 (2026-04-03)
 - **测试用例总数**: 53
-- **覆盖率**: 36.5% (进行中)
-- **目标**: >90%
+- **基线覆盖率**: 36.5% (来自tb_coverage.sv)
+- **目标**: >90% (需运行全部53个测试用例)
+
+### 快速命令参考
+```bash
+# 环境设置
+./Scripts/setup_env.sh
+
+# 快速回归 (10个测试)
+./Scripts/run_regression.sh fast
+
+# 完整回归 (32个测试)
+./Scripts/run_regression.sh full
+
+# 收集覆盖率
+./Scripts/run_coverage.sh verilator baseline
+
+# 生成报告
+./Scripts/generate_report.sh
+```
 
 ### 运行新测试用例
 ```bash
-# 运行覆盖率增强测试
-make -f Makefile.verilator run_new
+# 运行覆盖率增强测试 (4个新测试)
+./Scripts/run_coverage.sh verilator new
 
-# 合并所有覆盖率
-make -f Makefile.verilator merge_cov
+# 运行所有测试用例收集覆盖率
+./Scripts/run_coverage.sh verilator all
+
+# 生成合并报告
+./Scripts/generate_report.sh all
 
 # 查看报告
 firefox ../../ProjectMgmt/Reviews/IDR/html/index.html

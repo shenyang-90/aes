@@ -231,3 +231,7 @@ help:
 	@echo ""
 	@echo "IDR Output: $(REPORT_DIR)"
 	@echo "New testcases: $(NEW_TESTCASES)"
+	@echo ""
+	@echo "推荐使用新的脚本:"
+	@echo "  ./Scripts/run_coverage.sh verilator all  - 运行所有测试收集覆盖率"
+	@echo "  ./Scripts/generate_report.sh             - 生成报告"
