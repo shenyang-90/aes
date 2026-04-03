@@ -5,6 +5,52 @@
 
 `timescale 1ns / 1ps
 
+// Register address definitions (for testcase compatibility)
+`ifndef TB_BASE_SV
+`define TB_BASE_SV
+
+// Control/Status registers
+`define REG_CTRL        12'h000
+`define REG_STATUS      12'h004
+`define REG_KEY_LEN     12'h008
+`define REG_MODE        12'h00C
+
+// Key registers (8 x 32-bit = 256-bit)
+`define REG_KEY_0       12'h010
+`define REG_KEY_1       12'h014
+`define REG_KEY_2       12'h018
+`define REG_KEY_3       12'h01C
+`define REG_KEY_4       12'h020
+`define REG_KEY_5       12'h024
+`define REG_KEY_6       12'h028
+`define REG_KEY_7       12'h02C
+
+// IV registers (4 x 32-bit = 128-bit)
+`define REG_IV_0        12'h030
+`define REG_IV_1        12'h034
+`define REG_IV_2        12'h038
+`define REG_IV_3        12'h03C
+
+// Data input/output
+`define REG_DATA_IN_0   12'h040
+`define REG_DATA_IN_1   12'h044
+`define REG_DATA_IN_2   12'h048
+`define REG_DATA_IN_3   12'h04C
+`define REG_DATA_OUT_0  12'h050
+`define REG_DATA_OUT_1  12'h054
+`define REG_DATA_OUT_2  12'h058
+`define REG_DATA_OUT_3  12'h05C
+
+// Interrupt
+`define REG_INT_STATUS  12'h060
+`define REG_INT_MASK    12'h064
+
+// Safety
+`define REG_FAULT_STATUS 12'h070
+`define REG_CRC_RESULT   12'h074
+
+`endif
+
 module tb_base;
 
     // Clock and reset
