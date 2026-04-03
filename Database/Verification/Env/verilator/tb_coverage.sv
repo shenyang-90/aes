@@ -181,23 +181,18 @@ module tb_coverage;
             
             // Wait for completion (poll STATUS register)
             timeout = 0;
-            while (timeout < 10000) begin
+            while (timeout < 10000 && !status[0]) begin
                 apb_read(12'h004, status);
-                if (status[0]) begin  // DONE bit
-                    @(posedge clk);
-                    @(posedge clk);
-                    disable aes_operation_wait;
-                end
                 timeout = timeout + 1;
                 @(posedge clk);
             end
             
+            // Extra cycles after done
+            repeat(10) @(posedge clk);
+            
             // Receive ciphertext via AXI-Stream
             axis_recv(ciphertext);
         end
-        
-        // Label for early exit
-        aes_operation_wait: ;
     endtask
     
     // Main test sequence

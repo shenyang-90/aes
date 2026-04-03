@@ -177,8 +177,36 @@ make verilator-report
 
 ---
 
+## 最新更新 (2026-04-03)
+
+### 新增测试用例
+- `tc_cts_full_boundary` - CTS 1-127 bit 边界覆盖率测试
+- `tc_gcm_advanced` - GCM AAD 和 Tag 验证
+- `tc_xts_multi_sector` - XTS 多扇区处理
+- `tc_error_recovery` - 错误状态恢复
+
+### 当前状态
+- **测试用例总数**: 53
+- **覆盖率**: 36.5% (进行中)
+- **目标**: >90%
+
+### 运行新测试用例
+```bash
+# 运行覆盖率增强测试
+make -f Makefile.verilator run_new
+
+# 合并所有覆盖率
+make -f Makefile.verilator merge_cov
+
+# 查看报告
+firefox ../../ProjectMgmt/Reviews/IDR/html/index.html
+```
+
+---
+
 ## 相关文档
 
 - `Testcases/directed/TESTCASE_INDEX.md` - 测试用例详细索引
 - `Env/uvm/README.md` - UVM环境文档 (如使用UVM)
 - `ProjectMgmt/Reviews/IDR/` - 项目评审报告和验证状态
+- `ProjectMgmt/Reviews/IDR/FINAL_VERIFICATION_REPORT.md` - 验证总报告
