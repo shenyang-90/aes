@@ -52,7 +52,7 @@ ${VERILATOR} --cc --trace --timing \
     --top-module tb_coverage \
     ${RTL_DIR}/*.v \
     ${ENV_DIR}/verilator/tb_coverage.sv \
-    ${ENV_DIR}/verilator/sim_main_coverage.cpp \
+    ${ENV_DIR}/verilator/sim_main.cpp \
     2>&1 | tee "${LOG_DIR}/compile.log" | tail -20
 
 if [ ! -f "${TEMP_DIR}/obj_dir/Vtb_coverage" ]; then

@@ -1,5 +1,5 @@
 TN:verilator_coverage
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/aes_controller.v
+SF:../RTL/aes_controller.v
 DA:11,0
 BRDA:11,0,0,0
 BRDA:11,0,1,0
@@ -516,7 +516,7 @@ DA:280,0
 BRF:384
 BRH:2
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/aes_core.v
+SF:../RTL/aes_core.v
 DA:9,0
 BRDA:9,0,0,0
 BRDA:9,0,1,0
@@ -2090,7 +2090,7 @@ DA:293,1000002
 BRF:1351
 BRH:1
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/aes_top.v
+SF:../RTL/aes_top.v
 DA:16,0
 BRDA:16,0,0,0
 BRDA:16,0,1,0
@@ -9883,7 +9883,7 @@ DA:770,0
 BRF:7494
 BRH:5
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/apb_if.v
+SF:../RTL/apb_if.v
 DA:8,0
 BRDA:8,0,0,0
 BRDA:8,0,1,0
@@ -10268,7 +10268,7 @@ DA:78,0
 BRF:338
 BRH:0
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/axi4_stream_if.v
+SF:../RTL/axi4_stream_if.v
 DA:8,0
 BRDA:8,0,0,0
 BRDA:8,0,1,0
@@ -11700,7 +11700,7 @@ DA:77,0
 BRF:1380
 BRH:0
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/crc_checker.v
+SF:../RTL/crc_checker.v
 DA:11,0
 BRDA:11,0,0,0
 BRDA:11,0,1,0
@@ -12166,7 +12166,7 @@ DA:84,0
 BRF:422
 BRH:0
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/cts_handler.v
+SF:../RTL/cts_handler.v
 DA:9,0
 BRDA:9,0,0,0
 BRDA:9,0,1,0
@@ -14112,7 +14112,7 @@ DA:157,0
 BRF:1862
 BRH:0
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/fault_detector.v
+SF:../RTL/fault_detector.v
 DA:8,0
 BRDA:8,0,0,0
 BRDA:8,0,1,0
@@ -15564,7 +15564,7 @@ DA:109,0
 BRF:1386
 BRH:0
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/gcm_engine.v
+SF:../RTL/gcm_engine.v
 DA:9,0
 BRDA:9,0,0,0
 BRDA:9,0,1,0
@@ -18015,7 +18015,7 @@ DA:163,0
 BRF:2362
 BRH:0
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/key_manager.v
+SF:../RTL/key_manager.v
 DA:8,0
 BRDA:8,0,0,0
 BRDA:8,0,1,0
@@ -20121,7 +20121,7 @@ DA:61,500001
 BRF:2072
 BRH:4
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/key_schedule.v
+SF:../RTL/key_schedule.v
 DA:10,0
 BRDA:10,0,0,0
 BRDA:10,0,1,0
@@ -21274,7 +21274,7 @@ DA:380,0
 BRF:950
 BRH:1
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/mode_controller.v
+SF:../RTL/mode_controller.v
 DA:8,0
 BRDA:8,0,0,0
 BRDA:8,0,1,0
@@ -25286,7 +25286,7 @@ DA:223,0
 BRF:3892
 BRH:0
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/sbox_masked.v
+SF:../RTL/sbox_masked.v
 DA:11,0
 BRDA:11,0,0,0
 BRDA:11,0,1,0
@@ -25770,7 +25770,7 @@ DA:336,0
 BRF:322
 BRH:0
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/RTL/xts_engine.v
+SF:../RTL/xts_engine.v
 DA:10,0
 BRDA:10,0,0,0
 BRDA:10,0,1,0
@@ -28929,7 +28929,7 @@ DA:182,0
 BRF:3052
 BRH:0
 end_of_record
-SF:/home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/Verification/Env/verilator/tb_coverage.sv
+SF:Env/verilator/tb_coverage.sv
 DA:12,1
 BRDA:12,0,0,1
 BRDA:12,0,1,0
