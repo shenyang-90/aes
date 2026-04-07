@@ -16,9 +16,10 @@ RTL_DIR="${PROJECT_ROOT}/Database/RTL"
 VERIF_DIR="${PROJECT_ROOT}/Database/Verification"
 ENV_DIR="${VERIF_DIR}/Env"
 TEMP_DIR="${PROJECT_ROOT}/Temp/Verilator"
-COV_DIR="${PROJECT_ROOT}/ProjectMgmt/Reviews/IDR/coverage"
-REPORT_DIR="${PROJECT_ROOT}/ProjectMgmt/Reviews/IDR/html"
-LOG_DIR="${PROJECT_ROOT}/ProjectMgmt/Reviews/IDR/logs"
+COV_DIR="${TEMP_DIR}/coverage"
+REPORT_DIR="${TEMP_DIR}/html"
+LOG_DIR="${TEMP_DIR}/logs"
+REPORT_OUTPUT="${PROJECT_ROOT}/ProjectMgmt/Reviews/IDR/COVERAGE_REPORT.md"
 
 # Tools
 VERILATOR="/usr/local/bin/verilator"
@@ -99,4 +100,49 @@ echo ""
 # Display summary if genhtml was available
 if [ -f "${REPORT_DIR}/index.html" ]; then
     grep -A2 "Overall coverage" "${LOG_DIR}/genhtml.log" 2>/dev/null || true
+fi
+
+# Generate summary report to ProjectMgmt/Reviews/IDR/
+echo ""
+echo "[5/5] Generating summary report..."
+
+# Extract coverage data from LCOV info file
+if [ -f "${COV_DIR}/coverage.info" ]; then
+    TOTAL_LINES=$(grep -c "^DA:" "${COV_DIR}/coverage.info" 2>/dev/null || echo "0")
+    HIT_LINES=$(grep "^DA:" "${COV_DIR}/coverage.info" | grep -v ",0$" | wc -l)
+    
+    if [ "$TOTAL_LINES" -gt 0 ]; then
+        COVERAGE=$(awk "BEGIN {printf \"%.1f\", ($HIT_LINES/$TOTAL_LINES)*100}")
+    else
+        COVERAGE="0.0"
+    fi
+    
+    cat > "${REPORT_OUTPUT}" << EOF
+# AES IP Coverage Report
+
+**Generated**: $(date '+%Y-%m-%d %H:%M:%S')
+**Tool**: Verilator + lcov/genhtml
+
+## Summary
+
+| Metric | Value |
+|--------|-------|
+| Line Coverage | ${COVERAGE}% (${HIT_LINES}/${TOTAL_LINES}) |
+| Coverage Data | ${COV_DIR}/coverage.dat |
+| LCOV Info | ${COV_DIR}/coverage.info |
+| HTML Report | ${REPORT_DIR}/index.html |
+| Full Logs | ${LOG_DIR}/ |
+
+## Location
+
+- Temporary files: \`${TEMP_DIR}/\`
+- This report: \`${REPORT_OUTPUT}\`
+
+## Notes
+
+All temporary coverage data is stored in Temp/ directory.
+This summary is the only file written to ProjectMgmt/Reviews/IDR/.
+EOF
+    
+    echo "Summary report: ${REPORT_OUTPUT}"
 fi

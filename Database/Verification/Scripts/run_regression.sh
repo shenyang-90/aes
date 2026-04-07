@@ -17,10 +17,12 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC
 # Parse arguments
 MODE="${1:-fast}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-REPORT_FILE="$PROJECT_DIR/ProjectMgmt/Reviews/IDR/regression_${MODE}_${TIMESTAMP}.txt"
+TEMP_DIR="$PROJECT_DIR/Temp/Regression"
+REPORT_FILE="$TEMP_DIR/regression_${MODE}_${TIMESTAMP}.txt"
+SUMMARY_FILE="$PROJECT_DIR/ProjectMgmt/Reviews/IDR/REGRESSION_SUMMARY.md"
 
 # Create directories
-mkdir -p "$PROJECT_DIR/ProjectMgmt/Reviews/IDR" "$PROJECT_DIR/Temp/Regression"
+mkdir -p "$TEMP_DIR" "$PROJECT_DIR/ProjectMgmt/Reviews/IDR"
 
 echo "========================================" | tee "$REPORT_FILE"
 echo "AES IP Regression Test ($MODE mode)" | tee -a "$REPORT_FILE"
@@ -64,12 +66,29 @@ echo "" | tee -a "$REPORT_FILE"
 echo "========================================" | tee -a "$REPORT_FILE"
 echo "Regression Complete: $(date)" | tee -a "$REPORT_FILE"
 echo "========================================" | tee -a "$REPORT_FILE"
-echo "Report: $REPORT_FILE" | tee -a "$REPORT_FILE"
-echo "Coverage: $PROJECT_DIR/ProjectMgmt/Reviews/IDR/html/index.html" | tee -a "$REPORT_FILE"
+echo "Full Report: $REPORT_FILE" | tee -a "$REPORT_FILE"
 
-# Link to latest
-ln -sf "$REPORT_FILE" "$PROJECT_DIR/ProjectMgmt/Reviews/IDR/regression_latest.txt"
+# Generate summary to ProjectMgmt/Reviews/IDR/
+cat > "$SUMMARY_FILE" << EOF
+# AES IP Regression Summary
+
+**Generated**: $(date '+%Y-%m-%d %H:%M:%S')
+**Mode**: $MODE
+
+## Report Location
+
+- Full regression log: \`$REPORT_FILE\`
+- Temporary files: \`${TEMP_DIR}/\`
+- This summary: \`${SUMMARY_FILE}\`
+
+## Notes
+
+All temporary regression data is stored in Temp/Regression/ directory.
+This summary is the only file written to ProjectMgmt/Reviews/IDR/.
+EOF
+
+echo "Summary: $SUMMARY_FILE" | tee -a "$REPORT_FILE"
 
 echo ""
-echo "To view coverage report:"
-echo "  firefox $PROJECT_DIR/ProjectMgmt/Reviews/IDR/html/index.html &"
+echo "To view full report:"
+echo "  cat $REPORT_FILE"

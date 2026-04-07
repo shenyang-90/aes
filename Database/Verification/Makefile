@@ -12,11 +12,12 @@ ENV_DIR = ./Env
 VERILATOR_DIR = $(ENV_DIR)/verilator
 TC_DIR = ./Testcases/directed
 
-# Output directories
+# Output directories - All temporary files in Temp/
 TEMP_DIR = ../../Temp/Verilator
-COV_DIR = ../../ProjectMgmt/Reviews/IDR/coverage
-REPORT_DIR = ../../ProjectMgmt/Reviews/IDR/html
-LOG_DIR = ../../ProjectMgmt/Reviews/IDR/logs
+COV_DIR = $(TEMP_DIR)/coverage
+REPORT_DIR = $(TEMP_DIR)/html
+LOG_DIR = $(TEMP_DIR)/logs
+SUMMARY_FILE = ../../ProjectMgmt/Reviews/IDR/COVERAGE_REPORT.md
 
 # Verilator flags
 VERILATOR_FLAGS = --cc --trace --timing \
@@ -97,6 +98,25 @@ cov: compile run coverage report
 	@echo "Coverage Collection Complete"
 	@echo "========================================"
 	@tail -5 $(LOG_DIR)/report.log 2>/dev/null || true
+	@echo ""
+	@echo "[SUMMARY] Generating summary report..."
+	@echo "# AES IP Coverage Report" > $(SUMMARY_FILE)
+	@echo "" >> $(SUMMARY_FILE)
+	@echo "**Generated**: $$(date '+%Y-%m-%d %H:%M:%S')" >> $(SUMMARY_FILE)
+	@echo "" >> $(SUMMARY_FILE)
+	@echo "## Summary" >> $(SUMMARY_FILE)
+	@echo "" >> $(SUMMARY_FILE)
+	@echo "| Item | Location |" >> $(SUMMARY_FILE)
+	@echo "|------|----------|" >> $(SUMMARY_FILE)
+	@echo "| Coverage Data | $(COV_DIR)/ |" >> $(SUMMARY_FILE)
+	@echo "| HTML Report | $(REPORT_DIR)/index.html |" >> $(SUMMARY_FILE)
+	@echo "| Full Logs | $(LOG_DIR)/ |" >> $(SUMMARY_FILE)
+	@echo "" >> $(SUMMARY_FILE)
+	@echo "## Notes" >> $(SUMMARY_FILE)
+	@echo "" >> $(SUMMARY_FILE)
+	@echo "All temporary coverage data is stored in Temp/ directory." >> $(SUMMARY_FILE)
+	@echo "This summary is the only file written to ProjectMgmt/Reviews/IDR/." >> $(SUMMARY_FILE)
+	@echo "[SUMMARY] Report: $(SUMMARY_FILE)"
 
 # Quick run (using existing compile)
 quick:
@@ -152,7 +172,8 @@ help:
 	@echo "  make list-tests - List all testcases"
 	@echo ""
 	@echo "Output locations:"
-	@echo "  Build:   $(TEMP_DIR)"
+	@echo "  Build:    $(TEMP_DIR)"
 	@echo "  Coverage: $(COV_DIR)"
-	@echo "  Report:  $(REPORT_DIR)"
-	@echo "  Logs:    $(LOG_DIR)"
+	@echo "  Report:   $(REPORT_DIR)"
+	@echo "  Logs:     $(LOG_DIR)"
+	@echo "  Summary:  $(SUMMARY_FILE)"

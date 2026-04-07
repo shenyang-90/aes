@@ -17,11 +17,12 @@ PROJECT_DIR="$VERIF_DIR/../.."
 RTL_DIR="$PROJECT_DIR/Database/RTL"
 TC_DIR="$VERIF_DIR/Testcases/directed"
 
-# Output directories
+# Output directories - All temporary files in Temp/
 TEMP_DIR="$PROJECT_DIR/Temp/Verilator"
-COV_DIR="$PROJECT_DIR/ProjectMgmt/Reviews/IDR/coverage"
-REPORT_DIR="$PROJECT_DIR/ProjectMgmt/Reviews/IDR/html"
-LOG_DIR="$PROJECT_DIR/ProjectMgmt/Reviews/IDR/logs"
+COV_DIR="$TEMP_DIR/coverage"
+REPORT_DIR="$TEMP_DIR/html"
+LOG_DIR="$TEMP_DIR/logs"
+REPORT_OUTPUT="$PROJECT_DIR/ProjectMgmt/Reviews/IDR/COVERAGE_REPORT.md"
 
 # Tools
 VERILATOR="/usr/local/bin/verilator"
@@ -230,3 +231,50 @@ echo "========================================"
 echo "Coverage data: $COV_DIR"
 echo "HTML report:   $REPORT_DIR/index.html"
 echo "Logs:          $LOG_DIR"
+
+# Generate summary report to ProjectMgmt/Reviews/IDR/
+echo ""
+echo "Generating summary report..."
+
+# Extract coverage data from LCOV info file
+if [ -f "$COV_DIR/merged.info" ]; then
+    TOTAL_LINES=$(grep -c "^DA:" "$COV_DIR/merged.info" 2>/dev/null || echo "0")
+    HIT_LINES=$(grep "^DA:" "$COV_DIR/merged.info" | grep -v ",0$" | wc -l)
+    
+    if [ "$TOTAL_LINES" -gt 0 ]; then
+        COVERAGE=$(awk "BEGIN {printf \"%.1f\", ($HIT_LINES/$TOTAL_LINES)*100}")
+    else
+        COVERAGE="0.0"
+    fi
+    
+    cat > "$REPORT_OUTPUT" << EOF
+# AES IP Coverage Report (Batch)
+
+**Generated**: $(date '+%Y-%m-%d %H:%M:%S')
+**Tool**: Verilator + lcov/genhtml
+**Testcases**: $TOTAL total, $PASS passed, $FAIL failed
+
+## Summary
+
+| Metric | Value |
+|--------|-------|
+| Line Coverage | ${COVERAGE}% (${HIT_LINES}/${TOTAL_LINES}) |
+| Coverage Data Files | $DAT_COUNT |
+| Coverage Data | ${COV_DIR}/ |
+| Merged Info | ${COV_DIR}/merged.info |
+| HTML Report | ${REPORT_DIR}/index.html |
+| Full Logs | ${LOG_DIR}/ |
+
+## Location
+
+- Temporary files: \`${TEMP_DIR}/\`
+- This report: \`${REPORT_OUTPUT}\`
+
+## Notes
+
+All temporary coverage data is stored in Temp/ directory.
+This summary is the only file written to ProjectMgmt/Reviews/IDR/.
+EOF
+    
+    echo "Summary report: $REPORT_OUTPUT"
+fi

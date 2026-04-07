@@ -17,7 +17,9 @@ fi
 
 NEW_TC=$1
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-COV_DIR="$SCRIPT_DIR/../../../ProjectMgmt/Reviews/IDR/coverage"
+PROJECT_DIR="$SCRIPT_DIR/../../.."
+TEMP_DIR="$PROJECT_DIR/Temp/Verilator"
+COV_DIR="$TEMP_DIR/coverage"
 
 # Colors
 GREEN='\033[0;32m'
@@ -67,14 +69,16 @@ echo "Total testcases in coverage: $TC_COUNT"
 echo ""
 
 # Optional: Generate HTML report
+REPORT_DIR="$TEMP_DIR/html"
+mkdir -p "$REPORT_DIR"
 read -p "Generate HTML report? (y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "Generating HTML report..."
-    genhtml merged.info -o ../html/ --no-function-coverage 2>/dev/null || \
-    genhtml merged.info -o ../html/ 2>/dev/null || \
+    genhtml merged.info -o "$REPORT_DIR" --no-function-coverage 2>/dev/null || \
+    genhtml merged.info -o "$REPORT_DIR" 2>/dev/null || \
     echo "HTML generation skipped (genhtml not available)"
-    echo -e "${GREEN}HTML report: ../html/index.html${NC}"
+    echo -e "${GREEN}HTML report: $REPORT_DIR/index.html${NC}"
 fi
 
 echo ""
