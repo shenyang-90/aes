@@ -78,9 +78,20 @@ cp "${TEMP_DIR}/coverage.dat" "${COV_DIR}/coverage.dat"
 ${VERILATOR_COVERAGE} --write-info "${COV_DIR}/coverage.info" "${COV_DIR}/coverage.dat" 2>&1 | tee "${LOG_DIR}/coverage.log"
 
 echo ""
-echo "[4/4] Generating HTML report..."
+echo "[4/5] Extracting RTL-only coverage..."
+if command -v lcov &> /dev/null; then
+    lcov --extract "${COV_DIR}/coverage.info" "*/Database/RTL/*" \
+        -o "${COV_DIR}/rtl.info" \
+        > "${LOG_DIR}/extract.log" 2>&1 || true
+    echo "RTL coverage extracted: ${COV_DIR}/rtl.info"
+else
+    cp "${COV_DIR}/coverage.info" "${COV_DIR}/rtl.info"
+fi
+
+echo ""
+echo "[5/5] Generating HTML report (RTL only)..."
 if command -v genhtml &> /dev/null; then
-    genhtml "${COV_DIR}/coverage.info" -o "${REPORT_DIR}" --ignore-errors source 2>&1 | tee "${LOG_DIR}/genhtml.log"
+    genhtml "${COV_DIR}/rtl.info" -o "${REPORT_DIR}" --ignore-errors source 2>&1 | tee "${LOG_DIR}/genhtml.log"
     echo ""
     echo "HTML Report: ${REPORT_DIR}/index.html"
 else
@@ -106,10 +117,10 @@ fi
 echo ""
 echo "[5/5] Generating summary report..."
 
-# Extract coverage data from LCOV info file
-if [ -f "${COV_DIR}/coverage.info" ]; then
-    TOTAL_LINES=$(grep -c "^DA:" "${COV_DIR}/coverage.info" 2>/dev/null || echo "0")
-    HIT_LINES=$(grep "^DA:" "${COV_DIR}/coverage.info" | grep -v ",0$" | wc -l)
+# Extract coverage data from LCOV info file (RTL only)
+if [ -f "${COV_DIR}/rtl.info" ]; then
+    TOTAL_LINES=$(grep -c "^DA:" "${COV_DIR}/rtl.info" 2>/dev/null || echo "0")
+    HIT_LINES=$(grep "^DA:" "${COV_DIR}/rtl.info" | grep -v ",0$" | wc -l)
     
     if [ "$TOTAL_LINES" -gt 0 ]; then
         COVERAGE=$(awk "BEGIN {printf \"%.1f\", ($HIT_LINES/$TOTAL_LINES)*100}")
@@ -127,9 +138,9 @@ if [ -f "${COV_DIR}/coverage.info" ]; then
 
 | Metric | Value |
 |--------|-------|
-| Line Coverage | ${COVERAGE}% (${HIT_LINES}/${TOTAL_LINES}) |
+| Line Coverage (RTL only) | ${COVERAGE}% (${HIT_LINES}/${TOTAL_LINES}) |
 | Coverage Data | ${COV_DIR}/coverage.dat |
-| LCOV Info | ${COV_DIR}/coverage.info |
+| RTL Info | ${COV_DIR}/rtl.info |
 | HTML Report | ${REPORT_DIR}/index.html |
 | Full Logs | ${LOG_DIR}/ |
 

@@ -162,7 +162,7 @@ EOFCPP
     export VERILATOR_THREADS=1
     unset VERILATOR_ROOT
     
-    if timeout 120 "$OBJ_DIR/V${tc_name}" \
+    if timeout 300 "$OBJ_DIR/V${tc_name}" \
         > "$LOG_DIR/${tc_name}.log" 2>&1; then
         
         # Check coverage data generated (in current dir which is VERIF_DIR)
@@ -205,10 +205,22 @@ if [ "$DAT_COUNT" -gt 0 ]; then
     echo "Coverage merged: $COV_DIR/merged.info"
     echo ""
     
-    # Generate HTML report
+    # Extract only RTL coverage data
+    echo "Extracting RTL-only coverage..."
+    if command -v lcov &> /dev/null; then
+        lcov --extract "$COV_DIR/merged.info" "*/Database/RTL/*" \
+            -o "$COV_DIR/rtl.info" \
+            > "$LOG_DIR/extract.log" 2>&1 || true
+        echo "RTL coverage extracted: $COV_DIR/rtl.info"
+    else
+        # Fallback: use merged.info directly
+        cp "$COV_DIR/merged.info" "$COV_DIR/rtl.info"
+    fi
+    
+    # Generate HTML report (RTL only)
     if command -v genhtml &> /dev/null; then
-        echo "Generating HTML report..."
-        genhtml "$COV_DIR/merged.info" -o "$REPORT_DIR" \
+        echo "Generating HTML report (RTL only)..."
+        genhtml "$COV_DIR/rtl.info" -o "$REPORT_DIR" \
             --ignore-errors source \
             > "$LOG_DIR/report.log" 2>&1 || true
         
@@ -236,10 +248,10 @@ echo "Logs:          $LOG_DIR"
 echo ""
 echo "Generating summary report..."
 
-# Extract coverage data from LCOV info file
-if [ -f "$COV_DIR/merged.info" ]; then
-    TOTAL_LINES=$(grep -c "^DA:" "$COV_DIR/merged.info" 2>/dev/null || echo "0")
-    HIT_LINES=$(grep "^DA:" "$COV_DIR/merged.info" | grep -v ",0$" | wc -l)
+# Extract coverage data from LCOV info file (RTL only)
+if [ -f "$COV_DIR/rtl.info" ]; then
+    TOTAL_LINES=$(grep -c "^DA:" "$COV_DIR/rtl.info" 2>/dev/null || echo "0")
+    HIT_LINES=$(grep "^DA:" "$COV_DIR/rtl.info" | grep -v ",0$" | wc -l)
     
     if [ "$TOTAL_LINES" -gt 0 ]; then
         COVERAGE=$(awk "BEGIN {printf \"%.1f\", ($HIT_LINES/$TOTAL_LINES)*100}")
