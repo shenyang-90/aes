@@ -1,16 +1,28 @@
 #============================================================================
-# Makefile for AES IP Verification - Verilator Only
+# Makefile for AES IP Verification - Multi-Simulator Support
+# Supports: Verilator (default), VCS
+# Debug: Verdi
+# Coverage: lcov (Verilator), URG (VCS)
 #============================================================================
 
-# Verilator path
+# Tool paths (adjust based on your installation)
 VERILATOR = /usr/local/bin/verilator
 VERILATOR_COVERAGE = /usr/local/bin/verilator_coverage
+VCS = vcs
+VERDI = verdi
+URG = urg
 
 # Directories
+VERIF_DIR = .
 RTL_DIR = ../RTL
 ENV_DIR = ./Env
 VERILATOR_DIR = $(ENV_DIR)/verilator
 TC_DIR = ./Testcases/directed
+
+# VCS directories
+VCS_DIR = ../../Temp/VCS
+VCS_COV_DIR = $(VCS_DIR)/coverage
+VCS_LOG_DIR = $(VCS_DIR)/logs
 
 # Output directories - All temporary files in Temp/
 TEMP_DIR = ../../Temp/Verilator
@@ -153,27 +165,124 @@ list-tests:
 	@echo "Available testcases ($(shell ls $(TC_DIR)/*.sv | wc -l)):"
 	@ls -1 $(TC_DIR)/*.sv | xargs -n1 basename | sed 's/.sv$$//' | nl
 
+# VCS Compile
+vcs-compile: setup-vcs
+	@echo "========================================"
+	@echo "Compiling with VCS..."
+	@echo "========================================"
+	cd $(VCS_DIR) && $(VCS) -full64 -sverilog -debug_access+all -kdb \
+		-timescale=1ns/1ps \
+		+incdir+$(TC_DIR) \
+		+incdir+$(ENV_DIR)/tb \
+		-CFLAGS "-DVCS" \
+		-f $(VERIF_DIR)/rtl.f \
+		$(TB_COVERAGE) \
+		-o simv \
+		2>&1 | tee $(VCS_LOG_DIR)/compile.log
+	@echo "[VCS COMPILE] Done"
+
+# VCS Run
+vcs-run:
+	@echo "========================================"
+	@echo "Running VCS simulation..."
+	@echo "========================================"
+	cd $(VCS_DIR) && ./simv +vcs+lic+wait \
+		2>&1 | tee $(VCS_LOG_DIR)/simulation.log
+	@echo "[VCS RUN] Done"
+
+# VCS Coverage Collection
+vcs-coverage:
+	@echo "========================================"
+	@echo "Collecting VCS coverage..."
+	@echo "========================================"
+	cd $(VCS_DIR) && $(URG) -dir simv.vdb \
+		-format both \
+		-report $(VCS_COV_DIR) \
+		-togl $(RTL_DIR)/*.v \
+		-line $(RTL_DIR)/*.v \
+		-cond $(RTL_DIR)/*.v \
+		-fsm $(RTL_DIR)/*.v \
+		2>&1 | tee $(VCS_LOG_DIR)/coverage.log
+	@echo "[VCS COVERAGE] Report: $(VCS_COV_DIR)/dashboard.txt"
+
+# VCS Full Flow
+vcs-cov: vcs-compile vcs-run vcs-coverage
+	@echo ""
+	@echo "========================================"
+	@echo "VCS Coverage Collection Complete"
+	@echo "========================================"
+	@echo "Coverage Report: $(VCS_COV_DIR)/dashboard.txt"
+
+# Verdi Debug - Open waveform
+verdi:
+	@echo "========================================"
+	@echo "Opening Verdi..."
+	@echo "========================================"
+	@if [ -f $(VCS_DIR)/simv.vdb/snps/fdebug/verdi.db ]; then \
+		cd $(VCS_DIR) && $(VERDI) -dbdir simv.vdb & \
+	elif [ -f $(TEMP_DIR)/waveform.vcd ]; then \
+		$(VERDI) -ssf $(TEMP_DIR)/waveform.vcd -dbdir $(VCS_DIR)/simv.vdb & \
+	else \
+		echo "[ERROR] No waveform database found. Run 'make vcs-run' first."; \
+	fi
+
+# Verdi Coverage - Open coverage
+verdi-cov:
+	@echo "========================================"
+	@echo "Opening Verdi Coverage..."
+	@echo "========================================"
+	@if [ -d $(VCS_DIR)/simv.vdb ]; then \
+		$(VERDI) -cov -covdir $(VCS_DIR)/simv.vdb & \
+	else \
+		echo "[ERROR] No coverage database found. Run 'make vcs-cov' first."; \
+	fi
+
+# Setup VCS directories
+setup-vcs:
+	@mkdir -p $(VCS_DIR) $(VCS_COV_DIR) $(VCS_LOG_DIR)
+	@echo "[SETUP] VCS directories ready"
+
+# Clean VCS artifacts
+clean-vcs:
+	@echo "Cleaning VCS artifacts..."
+	rm -rf $(VCS_DIR)/simv* $(VCS_DIR)/csrc $(VCS_DIR)/vc_hdrs.h
+	rm -rf $(VCS_DIR)/*.vpd $(VCS_DIR)/*.vcd
+	rm -rf $(VCS_DIR)/verdiLog $(VCS_DIR)/novas*
+	@echo "[CLEAN-VCS] Done"
+
 # Help
 help:
 	@echo "========================================"
 	@echo "AES IP Verification Makefile"
 	@echo "========================================"
 	@echo ""
-	@echo "Targets:"
-	@echo "  make compile    - Compile with Verilator"
-	@echo "  make run        - Run simulation"
-	@echo "  make coverage   - Collect coverage data"
-	@echo "  make report     - Generate HTML report"
-	@echo "  make cov        - Full flow (compile+run+coverage+report)"
-	@echo "  make quick      - Quick run (no recompile)"
-	@echo "  make clean      - Clean build artifacts"
-	@echo "  make clean-all  - Clean everything including reports"
-	@echo "  make view       - Open coverage report in browser"
-	@echo "  make list-tests - List all testcases"
+	@echo "=== Verilator Targets ==="
+	@echo "  make compile      - Compile with Verilator"
+	@echo "  make run          - Run simulation"
+	@echo "  make coverage     - Collect coverage data"
+	@echo "  make report       - Generate HTML report"
+	@echo "  make cov          - Full flow (compile+run+coverage+report)"
+	@echo "  make quick        - Quick run (no recompile)"
+	@echo ""
+	@echo "=== VCS Targets ==="
+	@echo "  make vcs-compile  - Compile with VCS"
+	@echo "  make vcs-run      - Run VCS simulation"
+	@echo "  make vcs-coverage - Collect VCS coverage"
+	@echo "  make vcs-cov      - Full VCS flow"
+	@echo ""
+	@echo "=== Verdi Targets ==="
+	@echo "  make verdi        - Open Verdi waveform viewer"
+	@echo "  make verdi-cov    - Open Verdi coverage viewer"
+	@echo ""
+	@echo "=== Utility Targets ==="
+	@echo "  make clean        - Clean build artifacts"
+	@echo "  make clean-all    - Clean everything including reports"
+	@echo "  make clean-vcs    - Clean VCS artifacts"
+	@echo "  make view         - Open coverage report in browser"
+	@echo "  make list-tests   - List all testcases"
+	@echo "  make help         - Show this help"
 	@echo ""
 	@echo "Output locations:"
-	@echo "  Build:    $(TEMP_DIR)"
-	@echo "  Coverage: $(COV_DIR)"
-	@echo "  Report:   $(REPORT_DIR)"
-	@echo "  Logs:     $(LOG_DIR)"
-	@echo "  Summary:  $(SUMMARY_FILE)"
+	@echo "  Verilator: $(TEMP_DIR)"
+	@echo "  VCS:       $(VCS_DIR)"
+	@echo "  Summary:   $(SUMMARY_FILE)"
