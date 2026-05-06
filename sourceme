@@ -1,0 +1,296 @@
+#!/bin/bash
+#============================================================================
+# AES IP Project Environment Setup Script
+# Description: Source this file to set up project environment variables
+# Usage: source sourceme
+#============================================================================
+
+#============================================================================
+# Project Root Directory
+#============================================================================
+export AES_PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+#============================================================================
+# Key Directory Structure
+#============================================================================
+# Database directories
+export AES_RTL_DIR="${AES_PROJECT_ROOT}/Database/RTL"
+export AES_VERIF_DIR="${AES_PROJECT_ROOT}/Database/Verification"
+export AES_DOCS_DIR="${AES_PROJECT_ROOT}/Database/Docs"
+export AES_REGRESSION_DIR="${AES_PROJECT_ROOT}/Database/Regression"
+
+# Verification subdirectories
+export AES_TB_DIR="${AES_VERIF_DIR}/Env/tb"
+export AES_SVA_DIR="${AES_VERIF_DIR}/Env/sva"
+export AES_UVM_DIR="${AES_VERIF_DIR}/Env/uvm"
+export AES_TVLA_DIR="${AES_VERIF_DIR}/Env/tvla"
+export AES_VERILATOR_DIR="${AES_VERIF_DIR}/Env/verilator"
+export AES_SCRIPTS_DIR="${AES_VERIF_DIR}/Scripts"
+export AES_TC_DIR="${AES_VERIF_DIR}/Testcases/directed"
+export AES_VECTORS_DIR="${AES_VERIF_DIR}/Testcases/vectors"
+
+# Output directories
+export AES_TEMP_DIR="${AES_PROJECT_ROOT}/Temp"
+export AES_TEMP_VCS="${AES_TEMP_DIR}/VCS"
+export AES_TEMP_VERILATOR="${AES_TEMP_DIR}/Verilator"
+export AES_TEMP_COVERAGE="${AES_TEMP_DIR}/Coverage"
+export AES_WORK="${AES_TEMP_DIR}"
+
+# IDR Review directory
+export AES_IDR_DIR="${AES_PROJECT_ROOT}/ProjectMgmt/Reviews/IDR"
+export AES_IDR_COVERAGE="${AES_IDR_DIR}/coverage"
+export AES_IDR_HTML="${AES_IDR_DIR}/html"
+export AES_IDR_LOGS="${AES_IDR_DIR}/logs"
+
+#============================================================================
+# EDA Tool Paths
+#============================================================================
+
+# Verilator (Open Source)
+export VERILATOR="/usr/local/bin/verilator"
+export VERILATOR_COVERAGE="/usr/local/bin/verilator_coverage"
+export VERILATOR_ROOT="$(dirname $(dirname $VERILATOR))"
+
+# Icarus Verilog (Open Source)
+export IVERILOG="iverilog"
+export VVP="vvp"
+
+# GTKWave (Waveform viewer)
+export GTKWAVE="gtkwave"
+
+# Coverage tools (lcov)
+export GENHTML="genhtml"
+export LCOV="lcov"
+
+#============================================================================
+# Tool Versions (auto-detect)
+#============================================================================
+export VERILATOR_VERSION="$(${VERILATOR} --version 2>/dev/null | head -1 | awk '{print $2}' || echo 'unknown')"
+export IVERILOG_VERSION="$(${IVERILOG} --version 2>/dev/null | head -1 | awk '{print $2}' || echo 'unknown')"
+
+#============================================================================
+# Compilation Flags
+#============================================================================
+
+# Verilator flags for coverage
+export VERILATOR_FLAGS="--cc --trace --timing --coverage-line --coverage-toggle --public-flat-rw"
+export VERILATOR_WARNINGS="-Wno-PINMISSING -Wno-WIDTHTRUNC -Wno-WIDTHEXPAND"
+export VERILATOR_CFLAGS="-std=c++20 -O2"
+export VERILATOR_LDFLAGS="-lpthread"
+
+# Icarus Verilog flags
+export IVERILOG_FLAGS="-g2012 -Wall"
+
+#============================================================================
+# RTL Files
+#============================================================================
+# All RTL source files
+export AES_RTL_FILES="$(ls ${AES_RTL_DIR}/*.v 2>/dev/null | tr '\n' ' ')"
+export AES_RTL_FILE_COUNT="$(ls ${AES_RTL_DIR}/*.v 2>/dev/null | wc -l)"
+
+#============================================================================
+# Testcase Information
+#============================================================================
+export AES_TC_COUNT="$(ls ${AES_TC_DIR}/*.sv 2>/dev/null | wc -l)"
+export AES_TC_LIST="$(ls ${AES_TC_DIR}/*.sv 2>/dev/null | xargs -n1 basename | sed 's/.sv//' | tr '\n' ' ')"
+
+#============================================================================
+# Coverage Targets
+#============================================================================
+export AES_COVERAGE_TARGET_LINE="90"
+export AES_COVERAGE_TARGET_TOGGLE="85"
+export AES_COVERAGE_TARGET_FSM="95"
+export AES_COVERAGE_TARGET_CONDITION="90"
+
+#============================================================================
+# Utility Functions
+#============================================================================
+
+# Display project info
+aes_info() {
+    echo "========================================"
+    echo "AES IP Project Environment"
+    echo "========================================"
+    echo "Project Root: ${AES_PROJECT_ROOT}"
+    echo ""
+    echo "Directory Structure:"
+    echo "  RTL:        ${AES_RTL_DIR} (${AES_RTL_FILE_COUNT} files)"
+    echo "  Verification: ${AES_VERIF_DIR}"
+    echo "  Testcases:  ${AES_TC_DIR} (${AES_TC_COUNT} tests)"
+    echo "  IDR Reports: ${AES_IDR_DIR}"
+    echo "  Temp:       ${AES_TEMP_DIR}"
+    echo ""
+    echo "Tools:"
+    echo "  Verilator:  ${VERILATOR} (${VERILATOR_VERSION})"
+    echo "  Iverilog:   ${IVERILOG} (${IVERILOG_VERSION})"
+    echo "  GTKWave:    ${GTKWAVE}"
+    echo "  Genhtml:    ${GENHTML}"
+    echo "========================================"
+}
+
+# Quick navigation functions
+cdrtl() { cd "${AES_RTL_DIR}"; }
+cdverif() { cd "${AES_VERIF_DIR}"; }
+cdtc() { cd "${AES_TC_DIR}"; }
+cdscripts() { cd "${AES_SCRIPTS_DIR}"; }
+cdidr() { cd "${AES_IDR_DIR}"; }
+cdtemp() { cd "${AES_TEMP_VERILATOR}"; }
+
+# Run regression with selected mode
+aes_regression() {
+    local mode="${1:-fast}"
+    echo "Running ${mode} regression..."
+    cd "${AES_VERIF_DIR}" && ./Scripts/run_regression.sh "${mode}"
+}
+
+# Collect coverage
+aes_coverage() {
+    echo "Collecting coverage with Verilator..."
+    cd "${AES_VERIF_DIR}/Scripts" && ./collect_coverage.sh
+}
+
+# Quick coverage check
+aes_cov() {
+    echo "Running quick coverage collection..."
+    cd "${AES_VERIF_DIR}/Scripts" && ./collect_coverage.sh 2>&1 | tail -30
+}
+
+# Generate report
+aes_report() {
+    local format="${1:-all}"
+    echo "Generating ${format} report..."
+    cd "${AES_VERIF_DIR}" && ./Scripts/generate_report.sh "${format}"
+}
+
+# View coverage report
+aes_view_coverage() {
+    if command -v firefox &> /dev/null; then
+        firefox "${AES_IDR_HTML}/index.html" &
+    elif command -v chrome &> /dev/null; then
+        chrome "${AES_IDR_HTML}/index.html" &
+    else
+        echo "Please open: ${AES_IDR_HTML}/index.html"
+    fi
+}
+
+# List all testcases
+aes_list_tests() {
+    echo "Available testcases (${AES_TC_COUNT}):"
+    ls -1 "${AES_TC_DIR}"/*.sv | xargs -n1 basename | sed 's/.sv//' | nl
+}
+
+# Run single testcase with Icarus
+aes_run_test() {
+    local test="${1}"
+    if [ -z "${test}" ]; then
+        echo "Usage: aes_run_test <testcase_name>"
+        return 1
+    fi
+    cd "${AES_VERIF_DIR}" && make TEST="${test}" sim
+}
+
+# Compile RTL with Verilator
+aes_compile_verilator() {
+    echo "Compiling with Verilator..."
+    cd "${AES_TEMP_VERILATOR}" && \
+    ${VERILATOR} ${VERILATOR_FLAGS} ${VERILATOR_WARNINGS} \
+        -Mdir ./obj_dir \
+        -CFLAGS "${VERILATOR_CFLAGS}" \
+        -LDFLAGS "${VERILATOR_LDFLAGS}" \
+        --build --exe \
+        --top-module tb_coverage \
+        ${AES_RTL_FILES} \
+        ${AES_VERILATOR_DIR}/tb_coverage.sv \
+        ${AES_VERILATOR_DIR}/sim_main.cpp
+}
+
+# Clean all temp files
+aes_clean() {
+    echo "Cleaning temporary files..."
+    rm -rf "${AES_TEMP_VCS}"/*
+    rm -rf "${AES_TEMP_VERILATOR}"/obj_dir
+    rm -rf "${AES_TEMP_COVERAGE}"/*
+    echo "  ✓ Temp directories cleaned"
+}
+
+# Setup environment (run once)
+aes_setup() {
+    cd "${AES_VERIF_DIR}" && ./Scripts/setup_env.sh
+}
+
+# Full flow: run all tests and generate report
+aes_full_flow() {
+    echo "========================================"
+    echo "AES IP Full Verification Flow"
+    echo "========================================"
+    
+    # Step 1: Setup
+    echo "[1/4] Setting up environment..."
+    aes_setup
+    
+    # Step 2: Coverage collection
+    echo "[2/4] Collecting coverage..."
+    aes_coverage verilator all
+    
+    # Step 3: Merge and generate report
+    echo "[3/4] Generating report..."
+    aes_report all
+    
+    # Step 4: Display results
+    echo "[4/4] Flow complete!"
+    echo ""
+    echo "Coverage Report: ${AES_IDR_HTML}/index.html"
+    echo ""
+    aes_info
+}
+
+#============================================================================
+# Aliases
+#============================================================================
+alias aes-i='aes_info'
+alias aes-reg='aes_regression'
+alias aes-cov='aes_coverage'
+alias aes-rep='aes_report'
+alias aes-view='aes_view_coverage'
+alias aes-list='aes_list_tests'
+alias aes-run='aes_run_test'
+alias aes-comp='aes_compile_verilator'
+alias aes-cln='aes_clean'
+alias aes-flow='aes_full_flow'
+
+# Navigation aliases
+alias rtl='cdrtl'
+alias verif='cdverif'
+alias tc='cdtc'
+alias scripts='cdscripts'
+alias idr='cdidr'
+alias temp='cdtemp'
+
+#============================================================================
+# PATH additions (if needed)
+#============================================================================
+# Add project scripts to PATH for direct access
+export PATH="${AES_SCRIPTS_DIR}:${PATH}"
+
+#============================================================================
+# Welcome Message
+#============================================================================
+echo ""
+echo "========================================"
+echo "AES IP Verification Environment Loaded"
+echo "========================================"
+echo "Project: ${AES_PROJECT_ROOT}"
+echo "RTL: ${AES_RTL_FILE_COUNT} modules"
+echo "Tests: ${AES_TC_COUNT} testcases"
+echo ""
+echo "Quick Commands:"
+echo "  aes_info          - Show project info"
+echo "  aes_regression    - Run regression (fast/full/coverage)"
+echo "  aes_coverage      - Collect coverage"
+echo "  aes_report        - Generate reports"
+echo "  aes_view_coverage - Open HTML report"
+echo "  aes_full_flow     - Run complete verification flow"
+echo ""
+echo "Navigation:"
+echo "  rtl, verif, tc, scripts, idr, temp"
+echo "========================================"

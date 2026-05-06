@@ -147,7 +147,7 @@ module key_schedule (
     //========================================================================
     // Configuration based on key_len
     //========================================================================
-    reg [5:0]  nk;              // Number of 32-bit words in key (4, 6, or 8)
+    reg [6:0]  nk;              // Number of 32-bit words in key (4, 6, or 8)
     reg [3:0]  nr;              // Number of rounds (10, 12, or 14)
     reg [6:0]  total_words;     // Total words to generate (44, 52, or 60)
     
@@ -311,6 +311,7 @@ module key_schedule (
                         w[6] <= key_in[63:32];
                         w[7] <= key_in[31:0];
                     end
+                    default: ;  // Invalid key length: do nothing
                 endcase
             end
             

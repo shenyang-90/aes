@@ -10,15 +10,16 @@
 |------|------|-----------|
 | Smoke | 1 | Basic check |
 | 功能测试 | 6 | Line >90% |
-| 模式测试 | 8 | Cross >85% |
+| 模式测试 | 10 | Cross >85% |
 | 密钥测试 | 9 | Key schedule |
-| 错误处理 | 2 | Error paths |
+| 错误处理 | 3 | Error paths |
 | 故障注入 | 2 | Assert >95% |
 | Core/Direct | 2 | Core function |
-| 覆盖率提升 | 3 | Toggle >85% |
+| 覆盖率提升 | 7 | Toggle/Condition/FSM >90% |
 | 寄存器/中断 | 4 | Full feature |
 | **安全机制** | **5** | **SM-001~048** |
-| **总计** | **42** | **综合 >90%** |
+| **覆盖率增强** | **4** | **CTS/GCM/XTS/Error** |
+| **总计: 53** | **综合 >95%** |
 
 ---
 
@@ -699,7 +700,109 @@ cd ../../Temp/Verilator
 
 ---
 
-**文档版本**: v2.1  
-**更新日期**: 2026-04-01  
-**作者**: Verification Lead Agent  
-**测试用例总数**: 42
+## 新增测试用例 (Coverage Enhancement)
+
+### 14. CTS Full Boundary Coverage
+
+#### tc_cts_full_boundary
+- **描述**: CTS模式完整边界覆盖测试 (1-127 bit)
+- **覆盖点**:
+  - CTS-B-001~031: 全边界覆盖
+  - 1-8 bit: 最小stealing场景
+  - 9-31 bit: 短数据处理
+  - 32-63 bit: 中等数据处理
+  - 64-95 bit: 长数据处理
+  - 96-127 bit: 最大stealing场景
+  - AES-128/192/256所有密钥长度
+- **验证计划**: 2.3节 CTS边界条件
+- **创建日期**: 2026-04-02
+- **状态**: ✅ 新增，覆盖率提升
+
+---
+
+### 15. GCM Advanced Verification
+
+#### tc_gcm_advanced
+- **描述**: GCM模式高级验证 - AAD处理、Tag验证、多场景
+- **覆盖点**:
+  - GCM-003: Tag验证失败处理
+  - GCM-004: AAD处理
+  - 带AAD的GCM加密
+  - 无AAD的GCM加密 (Auth-only)
+  - AES-128/192/256 GCM
+  - 各种IV模式
+  - 零长度明文
+  - 连续操作
+- **验证计划**: 2.2.4节 GCM模式
+- **创建日期**: 2026-04-02
+- **状态**: ✅ 新增，条件覆盖提升
+
+---
+
+### 16. XTS Multi-Sector Processing
+
+#### tc_xts_multi_sector
+- **描述**: XTS模式多扇区处理验证
+- **覆盖点**:
+  - XTS-003: Tweakey派生验证
+  - XTS-004: Multi-sector连续处理
+  - 单扇区加解密
+  - 多扇区顺序处理
+  - Sector边界值 (min/max)
+  - 相同明文不同扇区 (不同密文)
+  - Tweakey派生验证
+  - AES-128/192/256 XTS
+  - 存储类访问模式
+- **验证计划**: 2.4节 XTS模式
+- **创建日期**: 2026-04-02
+- **状态**: ✅ 新增，Toggle覆盖提升
+
+---
+
+### 17. Error State Recovery
+
+#### tc_error_recovery
+- **描述**: 错误状态恢复验证
+- **覆盖点**:
+  - SM-049~054: ERROR状态进入/退出
+  - 错误状态检测
+  - 错误清除机制 (STATUS写入)
+  - 软复位恢复
+  - 硬复位恢复
+  - 中断使能/禁用
+  - 多次错误/恢复循环
+  - 恢复后完整操作验证
+  - 错误状态寄存器位域
+  - 看门狗超时指示
+- **验证计划**: 4.3节 安全目标验证, 8.2节 安全机制
+- **创建日期**: 2026-04-02
+- **状态**: ✅ 新增，FSM覆盖提升
+
+---
+
+## 更新记录
+
+| 版本 | 日期 | 变更内容 | 作者 |
+|------|------|---------|------|
+| v2.2 | 2026-04-02 | 新增4个覆盖率提升测试用例 (CTS/GCM/XTS/Error Recovery) | Verification Agent |
+| v2.1 | 2026-04-01 | 初始完整版本，42个测试用例 | Verification Lead Agent |
+
+---
+
+## 注意事项
+
+1. **AES-192/256**: 密钥长度相关测试用例需要RTL支持相应密钥长度
+2. **GCM模式**: tc_gcm_basic/tc_gcm_advanced 需要完整的GCM RTL实现（GHASH模块）
+3. **XTS模式**: tc_xts_basic/tc_xts_multi_sector 需要XTS引擎和Tweak生成模块
+4. **故障注入**: tc_fault_inject 为基础软件测试，硬件故障注入需FPGA/硅片验证
+5. **覆盖率测试**: IDR新增3个覆盖率提升测试用例，用于最大化toggle/condition/FSM覆盖
+6. **随机测试**: 新增5个随机测试用例，用于Verilator覆盖率收集和交叉覆盖验证
+7. **安全机制测试**: 新增5个安全机制测试用例，用于验证FuSa安全机制，参考Safety_Mechanism_Signals.md
+8. **新增测试**: 4个覆盖率提升测试用例针对特定覆盖缺口，建议优先运行
+
+---
+
+**文档版本**: v2.2  
+**更新日期**: 2026-04-02  
+**作者**: Verification Agent  
+**测试用例总数**: 51 (42原有 + 4新增 + 5随机)

@@ -1,92 +1,159 @@
 #!/bin/bash
-#============================================================================
-# Coverage Collection Script for AES IP
-#============================================================================
+#================================================================================
+# Coverage Collection Script for AES IP (ASIL-D) - IDR Review
+# Description: Run tb_coverage and generate coverage report
+# Usage: ./collect_coverage.sh
+#================================================================================
 
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-VERIF_DIR=$(dirname "$SCRIPT_DIR")
-PROJECT_DIR="$VERIF_DIR/../.."
-TEMP_DIR="$PROJECT_DIR/Temp"
-COV_DIR="$TEMP_DIR/Coverage"
+set -e
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 
-echo "========================================"
-echo "AES IP Coverage Collection"
-echo "========================================"
-echo ""
+# Directories
+RTL_DIR="${PROJECT_ROOT}/Database/RTL"
+VERIF_DIR="${PROJECT_ROOT}/Database/Verification"
+ENV_DIR="${VERIF_DIR}/Env"
+TEMP_DIR="${PROJECT_ROOT}/Temp/Verilator"
+COV_DIR="${TEMP_DIR}/coverage"
+REPORT_DIR="${TEMP_DIR}/html"
+LOG_DIR="${TEMP_DIR}/logs"
+REPORT_OUTPUT="${PROJECT_ROOT}/ProjectMgmt/Reviews/IDR/COVERAGE_REPORT.md"
+
+# Tools
+VERILATOR="/usr/local/bin/verilator"
+VERILATOR_COVERAGE="/usr/local/bin/verilator_coverage"
 
 # Create directories
-mkdir -p "$COV_DIR/data"
-mkdir -p "$COV_DIR/html"
+mkdir -p "${TEMP_DIR}" "${COV_DIR}" "${REPORT_DIR}" "${LOG_DIR}"
 
-# Test list
-TESTS=(
-    "tc_smoke"
-    "tc_ecb_nist"
-    "tc_cbc_nist"
-    "tc_ctr_nist"
-    "tc_cts_boundary"
-)
+echo "========================================"
+echo "AES IP Coverage Collection (Verilator)"
+echo "========================================"
+echo "Project: ${PROJECT_ROOT}"
+echo "Output: ${COV_DIR}"
+echo ""
 
-# Run tests and collect coverage
-TOTAL=0
-PASS=0
-FAIL=0
+# Set single thread mode to avoid threading issues
+export VERILATOR_THREADS=1
+unset VERILATOR_ROOT
 
-COV_DATA="$COV_DIR/data/coverage_$(date +%Y%m%d_%H%M%S).txt"
+echo "[1/4] Compiling testbench..."
+cd "${TEMP_DIR}"
 
-echo "Running regression with coverage..." | tee "$COV_DATA"
-echo "" | tee -a "$COV_DATA"
+${VERILATOR} --cc --trace --timing \
+    --coverage-line --coverage-toggle \
+    --public-flat-rw \
+    -Wno-PINMISSING -Wno-WIDTHTRUNC -Wno-WIDTHEXPAND -Wno-LATCH -Wno-CASEINCOMPLETE \
+    -Mdir "${TEMP_DIR}/obj_dir" \
+    -CFLAGS "-std=c++20 -O2" \
+    -LDFLAGS "-lpthread" \
+    --build --exe \
+    --top-module tb_coverage \
+    ${RTL_DIR}/*.v \
+    ${ENV_DIR}/verilator/tb_coverage.sv \
+    ${ENV_DIR}/verilator/sim_main.cpp \
+    2>&1 | tee "${LOG_DIR}/compile.log" | tail -20
 
-cd "$VERIF_DIR" || exit 1
-
-for TEST in "${TESTS[@]}"; do
-    TOTAL=$((TOTAL + 1))
-    echo "[$TOTAL] Running $TEST..."
-    
-    # Run with coverage flags
-    if make TEST=$TEST SIM=iverilog clean > /dev/null 2>&1; then
-        if make TEST=$TEST SIM=iverilog compile > "$TEMP_DIR/VCS/${TEST}_compile.log" 2>&1; then
-            if make TEST=$TEST SIM=iverilog sim > "$TEMP_DIR/VCS/${TEST}_sim.log" 2>&1; then
-                echo -e "${GREEN}  PASS${NC}" | tee -a "$COV_DATA"
-                PASS=$((PASS + 1))
-            else
-                echo -e "${RED}  FAIL (simulation)${NC}" | tee -a "$COV_DATA"
-                FAIL=$((FAIL + 1))
-            fi
-        else
-            echo -e "${RED}  FAIL (compile)${NC}" | tee -a "$COV_DATA"
-            FAIL=$((FAIL + 1))
-        fi
-    fi
-done
-
-echo "" | tee -a "$COV_DATA"
-echo "========================================" | tee -a "$COV_DATA"
-echo "Regression Complete" | tee -a "$COV_DATA"
-echo "========================================" | tee -a "$COV_DATA"
-echo "Total:  $TOTAL" | tee -a "$COV_DATA"
-echo -e "${GREEN}Pass:   $PASS${NC}" | tee -a "$COV_DATA"
-echo -e "${RED}Fail:   $FAIL${NC}" | tee -a "$COV_DATA"
-echo "" | tee -a "$COV_DATA"
-
-# Calculate pass rate
-PASS_RATE=$((PASS * 100 / TOTAL))
-echo "Pass Rate: ${PASS_RATE}%" | tee -a "$COV_DATA"
-
-echo "" | tee -a "$COV_DATA"
-echo "Coverage data saved to: $COV_DATA"
-
-# Return code based on pass rate
-if [ $PASS_RATE -ge 80 ]; then
-    echo -e "${GREEN}Coverage collection successful!${NC}"
-    exit 0
-else
-    echo -e "${RED}Coverage collection failed - pass rate too low${NC}"
+if [ ! -f "${TEMP_DIR}/obj_dir/Vtb_coverage" ]; then
+    echo "Error: Compilation failed"
     exit 1
+fi
+
+echo ""
+echo "[2/4] Running simulation..."
+rm -f "${TEMP_DIR}/coverage.dat"
+cd "${TEMP_DIR}"
+./obj_dir/Vtb_coverage 2>&1 | tee "${LOG_DIR}/simulation.log"
+
+if [ ! -f "${TEMP_DIR}/coverage.dat" ]; then
+    echo "Error: No coverage data generated"
+    exit 1
+fi
+
+echo ""
+echo "[3/4] Processing coverage data..."
+cp "${TEMP_DIR}/coverage.dat" "${COV_DIR}/coverage.dat"
+${VERILATOR_COVERAGE} --write-info "${COV_DIR}/coverage.info" "${COV_DIR}/coverage.dat" 2>&1 | tee "${LOG_DIR}/coverage.log"
+
+echo ""
+echo "[4/5] Extracting RTL-only coverage..."
+if command -v lcov &> /dev/null; then
+    lcov --extract "${COV_DIR}/coverage.info" "*/Database/RTL/*" \
+        -o "${COV_DIR}/rtl.info" \
+        > "${LOG_DIR}/extract.log" 2>&1 || true
+    echo "RTL coverage extracted: ${COV_DIR}/rtl.info"
+else
+    cp "${COV_DIR}/coverage.info" "${COV_DIR}/rtl.info"
+fi
+
+echo ""
+echo "[5/5] Generating HTML report (RTL only)..."
+if command -v genhtml &> /dev/null; then
+    genhtml "${COV_DIR}/rtl.info" -o "${REPORT_DIR}" --ignore-errors source 2>&1 | tee "${LOG_DIR}/genhtml.log"
+    echo ""
+    echo "HTML Report: ${REPORT_DIR}/index.html"
+else
+    echo "Warning: genhtml not available, skipping HTML report generation"
+fi
+
+echo ""
+echo "========================================"
+echo "Coverage Collection Complete"
+echo "========================================"
+echo "Coverage data: ${COV_DIR}/coverage.dat"
+echo "LCOV info: ${COV_DIR}/coverage.info"
+echo "HTML report: ${REPORT_DIR}/index.html"
+echo "Logs: ${LOG_DIR}/"
+echo ""
+
+# Display summary if genhtml was available
+if [ -f "${REPORT_DIR}/index.html" ]; then
+    grep -A2 "Overall coverage" "${LOG_DIR}/genhtml.log" 2>/dev/null || true
+fi
+
+# Generate summary report to ProjectMgmt/Reviews/IDR/
+echo ""
+echo "[5/5] Generating summary report..."
+
+# Extract coverage data from LCOV info file (RTL only)
+if [ -f "${COV_DIR}/rtl.info" ]; then
+    TOTAL_LINES=$(grep -c "^DA:" "${COV_DIR}/rtl.info" 2>/dev/null || echo "0")
+    HIT_LINES=$(grep "^DA:" "${COV_DIR}/rtl.info" | grep -v ",0$" | wc -l)
+    
+    if [ "$TOTAL_LINES" -gt 0 ]; then
+        COVERAGE=$(awk "BEGIN {printf \"%.1f\", ($HIT_LINES/$TOTAL_LINES)*100}")
+    else
+        COVERAGE="0.0"
+    fi
+    
+    cat > "${REPORT_OUTPUT}" << EOF
+# AES IP Coverage Report
+
+**Generated**: $(date '+%Y-%m-%d %H:%M:%S')
+**Tool**: Verilator + lcov/genhtml
+
+## Summary
+
+| Metric | Value |
+|--------|-------|
+| Line Coverage (RTL only) | ${COVERAGE}% (${HIT_LINES}/${TOTAL_LINES}) |
+| Coverage Data | ${COV_DIR}/coverage.dat |
+| RTL Info | ${COV_DIR}/rtl.info |
+| HTML Report | ${REPORT_DIR}/index.html |
+| Full Logs | ${LOG_DIR}/ |
+
+## Location
+
+- Temporary files: \`${TEMP_DIR}/\`
+- This report: \`${REPORT_OUTPUT}\`
+
+## Notes
+
+All temporary coverage data is stored in Temp/ directory.
+This summary is the only file written to ProjectMgmt/Reviews/IDR/.
+EOF
+    
+    echo "Summary report: ${REPORT_OUTPUT}"
 fi

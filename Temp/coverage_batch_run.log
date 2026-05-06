@@ -1,0 +1,169 @@
+========================================
+Batch Coverage Collection
+========================================
+Test List: Regression/test_list_cov_final.txt
+Output: /home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/Verification/../../Temp/Verilator/coverage
+
+Found 66 testcases
+
+[0;34m[1/66] Running tc_toggle_coverage...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[2/66] Running tc_corner_cases...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[3/66] Running tc_reset_error_coverage...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[4/66] Running tc_register_full...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[5/66] Running tc_safety_mechanisms_full...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[6/66] Running tc_mode_controller_full...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[7/66] Running tc_apb_interface_full...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[8/66] Running tc_error_injection_full...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[9/66] Running tc_fault_injection_full...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[10/66] Running tc_ecb_nist...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[11/66] Running tc_cbc_nist...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[12/66] Running tc_ctr_nist...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[13/66] Running tc_gcm_basic...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[14/66] Running tc_gcm_advanced...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[15/66] Running tc_gcm_ghash_full...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[16/66] Running tc_xts_basic...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[17/66] Running tc_xts_tweak_full...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[18/66] Running tc_key_length...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[19/66] Running tc_key_len_error...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[20/66] Running tc_key_length_192_0...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[21/66] Running tc_key_length_192_1...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[22/66] Running tc_key_length_192_2...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[23/66] Running tc_key_length_256_0...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[24/66] Running tc_key_length_256_1...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[25/66] Running tc_key_length_256_2...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[26/66] Running tc_error_handling...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[27/66] Running tc_error_interrupt...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[28/66] Running tc_error_mode_invalid...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[29/66] Running tc_error_rapid_start...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[30/66] Running tc_error_readonly...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[31/66] Running tc_error_recovery...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[32/66] Running tc_error_reserved_sampled...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[33/66] Running tc_fault_data_corr...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[34/66] Running tc_safety_dual_rail...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[35/66] Running tc_safety_crc_error...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[36/66] Running tc_safety_key_zeroize...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[37/66] Running tc_safety_fsm_timeout...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[38/66] Running tc_safety_interrupt...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[39/66] Running tc_random_modes...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[40/66] Running tc_random_keys...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[41/66] Running tc_random_data...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[42/66] Running tc_random_errors...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[43/66] Running tc_stress_random...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[44/66] Running tc_stress_random_full...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[45/66] Running tc_sbox_masked...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[46/66] Running tc_sbox_masked_full...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[47/66] Running tc_smoke...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[48/66] Running tc_aes_core_direct...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[49/66] Running tc_cts_boundary...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[50/66] Running tc_cts_decrypt_full...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[51/66] Running tc_mode_key_cross...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[52/66] Running tc_cts_cover_all_bits...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[53/66] Running tc_safety_mechanism_cov...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[54/66] Running tc_encrypt_decrypt_all_modes...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[55/66] Running tc_key_length_all_modes...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[56/66] Running tc_multiblock_all_modes...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[57/66] Running tc_interrupt_all_sources...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[58/66] Running tc_register_access_all...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[59/66] Running tc_reset_scenarios...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[60/66] Running tc_back_to_back_ops...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[61/66] Running tc_fault_injection_all...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[62/66] Running tc_bist_basic...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[63/66] Running tc_bist_power_on...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[64/66] Running tc_bist_periodic...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[65/66] Running tc_bist_on_demand...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+[0;34m[66/66] Running tc_bist_all_tests...[0m
+[0;32m  ✓ Pass (coverage saved)[0m
+
+========================================
+Batch Run Complete
+========================================
+Total:   66
+[0;32mPass:    66[0m
+[0;31mFail:    0[0m
+
+Merging 66 coverage data files...
+Coverage merged: /home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/Verification/../../Temp/Verilator/coverage/merged.info
+
+Generating HTML report...
+HTML Report: /home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/Verification/../../Temp/Verilator/html/index.html
+
+Processing file Testcases/directed/../../Env/tb/tb_base.sv
+Writing directory view page.
+Overall coverage rate:
+  lines......: 5.8% (446 of 7756 lines)
+  functions..: no data found
+
+========================================
+Coverage Collection Complete
+========================================
+Coverage data: /home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/Verification/../../Temp/Verilator/coverage
+HTML report:   /home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/Verification/../../Temp/Verilator/html/index.html
+Logs:          /home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/Verification/../../Temp/Verilator/logs
+
+Generating summary report...
+Summary report: /home/CALTERAH/yshen/sandbox/kimi/sandbox/aes/Database/Verification/../../ProjectMgmt/Reviews/IDR/COVERAGE_REPORT.md

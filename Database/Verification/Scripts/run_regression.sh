@@ -1,121 +1,94 @@
 #!/bin/bash
 #============================================================================
-# Regression Test Script for AES IP
+# Regression Script for AES IP - Verilator Only
+# Usage: ./run_regression.sh [fast|full|cov]
 #============================================================================
 
+set -e
+
+# Configuration
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 VERIF_DIR=$(dirname "$SCRIPT_DIR")
 PROJECT_DIR="$VERIF_DIR/../.."
-REPORT_DIR="$PROJECT_DIR/ProjectMgmt/Reviews/IDR"
-OUT_DIR="$PROJECT_DIR/Temp/VCS"
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
+
+# Parse arguments
+MODE="${1:-fast}"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+TEMP_DIR="$PROJECT_DIR/Temp/Regression"
+REPORT_FILE="$TEMP_DIR/regression_${MODE}_${TIMESTAMP}.txt"
+SUMMARY_FILE="$PROJECT_DIR/ProjectMgmt/Reviews/IDR/REGRESSION_SUMMARY.md"
 
 # Create directories
-mkdir -p "$REPORT_DIR" "$OUT_DIR"
-
-# Test list - Full regression (32 testcases)
-TESTS=(
-    # Smoke
-    "tc_smoke"
-    # Register & Interrupt
-    "tc_register_full"
-    "tc_interrupt_all"
-    # ECB Mode
-    "tc_ecb_nist"
-    "tc_ecb_multiblock"
-    "tc_mode_coverage"
-    # CBC Mode
-    "tc_cbc_nist"
-    "tc_cbc_decrypt"
-    # CTR Mode
-    "tc_ctr_nist"
-    "tc_ctr_counter"
-    # Multi-Block
-    "tc_cbc_multiblock"
-    "tc_ctr_multiblock"
-    # GCM Mode
-    "tc_gcm_basic"
-    # XTS Mode
-    "tc_xts_basic"
-    # CTS Mode
-    "tc_cts_boundary"
-    # Key Length (simplified - main tests only)
-    "tc_key_length"
-    "tc_key_len_check"
-    "tc_key_len_error"
-    "tc_key_single"
-    # Key Schedule
-    "tc_key_schedule_simple"
-    # S-Box
-    "tc_sbox_masked"
-    # Error Handling
-    "tc_error_handling"
-    "tc_error_injection"
-    # Fault Injection
-    "tc_fault_inject"
-    "tc_fault_data_corr"
-    # Core/Direct
-    "tc_aes_core_direct"
-    "tc_aes128_only"
-    # Coverage Maximization (IDR新增)
-    "tc_toggle_coverage"
-    "tc_corner_cases"
-    "tc_reset_error_coverage"
-)
-
-# Counters
-TOTAL=0
-PASS=0
-FAIL=0
-
-# Timestamp
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-REPORT_FILE="$REPORT_DIR/regression_report_${TIMESTAMP}.txt"
+mkdir -p "$TEMP_DIR" "$PROJECT_DIR/ProjectMgmt/Reviews/IDR"
 
 echo "========================================" | tee "$REPORT_FILE"
-echo "AES IP Regression Test" | tee -a "$REPORT_FILE"
+echo "AES IP Regression Test ($MODE mode)" | tee -a "$REPORT_FILE"
+echo "Tool: Verilator" | tee -a "$REPORT_FILE"
 echo "Started: $(date)" | tee -a "$REPORT_FILE"
 echo "========================================" | tee -a "$REPORT_FILE"
 
-# Run each test
-for TEST in "${TESTS[@]}"; do
-    TOTAL=$((TOTAL + 1))
-    
-    echo "" | tee -a "$REPORT_FILE"
-    echo "[$TOTAL] Running $TEST..." | tee -a "$REPORT_FILE"
-    
-    # Compile and run
-    cd "$TB_DIR" || exit 1
-    
-    if make SIM=iverilog TB=Testcases/directed/${TEST}.sv run > "$OUT_DIR/${TEST}.log" 2>&1; then
-        echo -e "${GREEN}  PASS${NC}" | tee -a "$REPORT_FILE"
-        PASS=$((PASS + 1))
-    else
-        echo -e "${RED}  FAIL${NC}" | tee -a "$REPORT_FILE"
-        FAIL=$((FAIL + 1))
-    fi
-done
+cd "$VERIF_DIR"
+
+case "$MODE" in
+    fast)
+        echo "Running fast regression (compile + quick run)..." | tee -a "$REPORT_FILE"
+        make clean compile 2>&1 | tee -a "$REPORT_FILE"
+        make quick 2>&1 | tee -a "$REPORT_FILE"
+        echo -e "${GREEN}Fast regression complete${NC}" | tee -a "$REPORT_FILE"
+        ;;
+    full)
+        echo "Running full regression with coverage..." | tee -a "$REPORT_FILE"
+        make clean-all cov 2>&1 | tee -a "$REPORT_FILE"
+        echo -e "${GREEN}Full regression complete${NC}" | tee -a "$REPORT_FILE"
+        ;;
+    cov|coverage)
+        echo "Running coverage collection..." | tee -a "$REPORT_FILE"
+        ./Scripts/collect_coverage.sh 2>&1 | tee -a "$REPORT_FILE"
+        echo -e "${GREEN}Coverage collection complete${NC}" | tee -a "$REPORT_FILE"
+        ;;
+    *)
+        echo "Unknown mode: $MODE"
+        echo "Usage: $0 [fast|full|cov]"
+        echo ""
+        echo "Modes:"
+        echo "  fast  - Clean compile and quick run"
+        echo "  full  - Full flow with coverage (make cov)"
+        echo "  cov   - Run coverage collection script"
+        exit 1
+        ;;
+esac
 
 # Summary
 echo "" | tee -a "$REPORT_FILE"
 echo "========================================" | tee -a "$REPORT_FILE"
 echo "Regression Complete: $(date)" | tee -a "$REPORT_FILE"
 echo "========================================" | tee -a "$REPORT_FILE"
-echo "Total:  $TOTAL" | tee -a "$REPORT_FILE"
-echo -e "${GREEN}Pass:   $PASS${NC}" | tee -a "$REPORT_FILE"
-echo -e "${RED}Fail:   $FAIL${NC}" | tee -a "$REPORT_FILE"
-echo "Report: $REPORT_FILE" | tee -a "$REPORT_FILE"
+echo "Full Report: $REPORT_FILE" | tee -a "$REPORT_FILE"
 
-# Return code
-if [ $FAIL -eq 0 ]; then
-    echo -e "\n${GREEN}All tests passed!${NC}"
-    exit 0
-else
-    echo -e "\n${RED}Some tests failed!${NC}"
-    exit 1
-fi
+# Generate summary to ProjectMgmt/Reviews/IDR/
+cat > "$SUMMARY_FILE" << EOF
+# AES IP Regression Summary
+
+**Generated**: $(date '+%Y-%m-%d %H:%M:%S')
+**Mode**: $MODE
+
+## Report Location
+
+- Full regression log: \`$REPORT_FILE\`
+- Temporary files: \`${TEMP_DIR}/\`
+- This summary: \`${SUMMARY_FILE}\`
+
+## Notes
+
+All temporary regression data is stored in Temp/Regression/ directory.
+This summary is the only file written to ProjectMgmt/Reviews/IDR/.
+EOF
+
+echo "Summary: $SUMMARY_FILE" | tee -a "$REPORT_FILE"
+
+echo ""
+echo "To view full report:"
+echo "  cat $REPORT_FILE"

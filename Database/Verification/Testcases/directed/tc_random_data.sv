@@ -13,7 +13,7 @@ module tc_random_data;
 
     // Test configuration
     localparam NUM_PATTERNS = 40;
-    localparam NUM_SEED = 32'hDATA_1234;
+    localparam NUM_SEED = 32'h1234_5678;
     
     // LFSR for pseudo-random generation
     reg [31:0] lfsr;

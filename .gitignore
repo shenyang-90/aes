@@ -1,35 +1,16 @@
-# Simulation outputs (all in Temp/)
-Temp/
+# Coverage data (large files)
+*.dat
+*.info
+coverage/
+ProjectMgmt/Reviews/IDR/coverage/
+ProjectMgmt/Reviews/IDR/html/
+ProjectMgmt/Reviews/IDR/logs/
+Temp/Verilator/
 *.vcd
-*.fst
-*.fsdb
-*.vpd
 
-# Compilation outputs
+# Build artifacts
 obj_dir/
 *.o
-*.out
-simv
-simv.daidir/
-csrc/
-Database/Verification/out/
-
-# Logs
-*.log
-transcript
-nwaveLog/
-
-# Coverage
-*.ucdb
-coverage/
-
-# Editor
-*.swp
-*.swo
-*~
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
+*.a
+*.so
+*.exe

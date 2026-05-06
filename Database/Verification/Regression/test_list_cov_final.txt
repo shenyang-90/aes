@@ -1,24 +1,124 @@
-# Final Coverage Push Test List
-# Target: >90% line coverage, >85% condition, >82% toggle
+# Coverage Maximization Test List for AES IP (Verilator)
+# Target: >90% line coverage, >85% toggle coverage
+# Tool: Verilator 5.046
+# Last Updated: 2026-04-03
+# Note: Paths are relative to Database/Verification/
 
-# Existing tests
-Database/Verification/Testcases/directed/tc_sanity_check.sv
-Database/Verification/Testcases/directed/tc_mode_coverage.sv
-Database/Verification/Testcases/directed/tc_key_len_check.sv
-Database/Verification/Testcases/directed/tc_error_injection.sv
-Database/Verification/Testcases/directed/tc_sbox_masked.sv
-Database/Verification/Testcases/directed/tc_ecb_multiblock.sv
-Database/Verification/Testcases/directed/tc_key_len_error.sv
-Database/Verification/Testcases/directed/tc_fault_data_corr.sv
+# ===========================================
+# Coverage Core Tests (9 tests)
+# High-impact tests for coverage improvement
+# ===========================================
+Testcases/directed/tc_toggle_coverage.sv
+Testcases/directed/tc_corner_cases.sv
+Testcases/directed/tc_reset_error_coverage.sv
+Testcases/directed/tc_register_full.sv
+Testcases/directed/tc_safety_mechanisms_full.sv
+Testcases/directed/tc_mode_controller_full.sv
+Testcases/directed/tc_apb_interface_full.sv
+Testcases/directed/tc_error_injection_full.sv
+Testcases/directed/tc_fault_injection_full.sv
 
-# New coverage tests (3 additional tests)
-Database/Verification/Testcases/directed/tc_toggle_coverage.sv
-Database/Verification/Testcases/directed/tc_corner_cases.sv
-Database/Verification/Testcases/directed/tc_reset_error_coverage.sv
+# ===========================================
+# Mode Coverage Tests (8 tests)
+# All operation modes
+# ===========================================
+Testcases/directed/tc_ecb_nist.sv
+Testcases/directed/tc_cbc_nist.sv
+Testcases/directed/tc_ctr_nist.sv
+Testcases/directed/tc_gcm_basic.sv
+Testcases/directed/tc_gcm_advanced.sv
+Testcases/directed/tc_gcm_ghash_full.sv
+Testcases/directed/tc_xts_basic.sv
+Testcases/directed/tc_xts_tweak_full.sv
 
-# Random testcases for Verilator coverage (5 tests - TASK-AES-VER-001)
-Database/Verification/Testcases/directed/tc_random_modes.sv
-Database/Verification/Testcases/directed/tc_random_keys.sv
-Database/Verification/Testcases/directed/tc_random_data.sv
-Database/Verification/Testcases/directed/tc_random_errors.sv
-Database/Verification/Testcases/directed/tc_stress_random.sv
+# ===========================================
+# Key Length Tests (7 tests)
+# All AES key sizes (128/192/256)
+# ===========================================
+Testcases/directed/tc_key_length.sv
+Testcases/directed/tc_key_len_error.sv
+Testcases/directed/tc_key_length_192_0.sv
+Testcases/directed/tc_key_length_192_1.sv
+Testcases/directed/tc_key_length_192_2.sv
+Testcases/directed/tc_key_length_256_0.sv
+Testcases/directed/tc_key_length_256_1.sv
+Testcases/directed/tc_key_length_256_2.sv
+
+# ===========================================
+# Error Handling Tests (8 tests)
+# Error paths and recovery
+# ===========================================
+Testcases/directed/tc_error_handling.sv
+Testcases/directed/tc_error_interrupt.sv
+Testcases/directed/tc_error_mode_invalid.sv
+Testcases/directed/tc_error_rapid_start.sv
+Testcases/directed/tc_error_readonly.sv
+Testcases/directed/tc_error_recovery.sv
+Testcases/directed/tc_error_reserved_sampled.sv
+Testcases/directed/tc_fault_data_corr.sv
+
+# ===========================================
+# Safety Mechanism Tests (5 tests)
+# ASIL-D safety features
+# ===========================================
+Testcases/directed/tc_safety_dual_rail.sv
+Testcases/directed/tc_safety_crc_error.sv
+Testcases/directed/tc_safety_key_zeroize.sv
+Testcases/directed/tc_safety_fsm_timeout.sv
+Testcases/directed/tc_safety_interrupt.sv
+
+# ===========================================
+# Random/Stress Tests (5 tests)
+# Pseudo-random stimulus for edge cases
+# ===========================================
+Testcases/directed/tc_random_modes.sv
+Testcases/directed/tc_random_keys.sv
+Testcases/directed/tc_random_data.sv
+Testcases/directed/tc_random_errors.sv
+Testcases/directed/tc_stress_random.sv
+Testcases/directed/tc_stress_random_full.sv
+
+# ===========================================
+# S-Box & Crypto Tests (2 tests)
+# Cryptographic core coverage
+# ===========================================
+Testcases/directed/tc_sbox_masked.sv
+Testcases/directed/tc_sbox_masked_full.sv
+
+# ===========================================
+# Smoke & Basic (2 tests)
+# ===========================================
+Testcases/directed/tc_smoke.sv
+Testcases/directed/tc_aes_core_direct.sv
+
+# ===========================================
+# CTS Special Mode (2 tests)
+# ===========================================
+Testcases/directed/tc_cts_boundary.sv
+Testcases/directed/tc_cts_decrypt_full.sv
+
+# ===========================================
+# Coverage Enhancement Tests (12 tests)
+# Covergroup-driven testcases
+# ===========================================
+Testcases/directed/tc_mode_key_cross.sv
+Testcases/directed/tc_cts_cover_all_bits.sv
+Testcases/directed/tc_safety_mechanism_cov.sv
+Testcases/directed/tc_encrypt_decrypt_all_modes.sv
+Testcases/directed/tc_key_length_all_modes.sv
+Testcases/directed/tc_multiblock_all_modes.sv
+Testcases/directed/tc_interrupt_all_sources.sv
+Testcases/directed/tc_register_access_all.sv
+Testcases/directed/tc_reset_scenarios.sv
+Testcases/directed/tc_back_to_back_ops.sv
+
+Testcases/directed/tc_fault_injection_all.sv
+
+# ===========================================
+# BIST Tests (5 tests) - RTL Implementation
+# ===========================================
+Testcases/directed/tc_bist_basic.sv
+Testcases/directed/tc_bist_power_on.sv
+Testcases/directed/tc_bist_periodic.sv
+Testcases/directed/tc_bist_on_demand.sv
+Testcases/directed/tc_bist_all_tests.sv

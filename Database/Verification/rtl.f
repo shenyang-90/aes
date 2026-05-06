@@ -1,0 +1,15 @@
+../RTL/aes_controller.v
+../RTL/aes_core.v
+../RTL/aes_top.v
+../RTL/apb_if.v
+../RTL/axi4_stream_if.v
+../RTL/crc_checker.v
+../RTL/cts_handler.v
+../RTL/fault_detector.v
+../RTL/gcm_engine.v
+../RTL/key_manager.v
+../RTL/key_schedule.v
+../RTL/mode_controller.v
+../RTL/safety_bist.v
+../RTL/sbox_masked.v
+../RTL/xts_engine.v
